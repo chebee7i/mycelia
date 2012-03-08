@@ -1,0 +1,30 @@
+Mycelia (plural of mycelium) is a network visualization tool for the Vrui.
+Networks can be loaded from Graphviz, XML, Chaco, or GraphML files, and
+graphs modified in the Cave can be saved in Graphviz format. Graph theory
+algorithms are provided by the Boost library.
+
+Other features include dynamic graph creation and modification tools, dynamic
+generation of Barabasi-Albert/Erdos-Renyi/Strogatz-Watts graphs, subgraph
+focus, and edge bundling. Static node layout is provided by a force directed
+layout algorithm, including an optional CUDA-accelerated implementation. A
+physically accurate dynamic layout algorithm based on Newton's equations is
+also available. Scripts to plot network-theoretic quantities such as node
+degree distribution and centrality can be written in Python, and the resulting
+plots can be viewed in Vrui where Matplotlib is installed.
+
+Mycelia acts as a graph visualization server via an XML-RPC interface. This
+allows users to write programs that extend Mycelia in almost any language, or
+offer transparent visualization within existing applications. For example,
+bindings exist to automatically visualize NetworkX graphs by changing a single
+variable in existing Python scripts. Current uses of this binding include
+visualization of e-machine reconstruction, a statistical inference method for
+creating optimal predictors from time series data.
+
+mycelia requires:
+    boost
+    ftgl
+    xmlrpc
+    curl
+
+On Ubuntu:
+    libboost-dev libboost-system-dev libboost-regex-dev libftgl-dev libxmlrpc-c3-dev libcurl4-openssl-dev
