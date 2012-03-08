@@ -46,7 +46,7 @@ class WattsGenerator;
 #define FONT_SIZE 96.0
 #define FONT_MODIFIER 0.04
 #define foreach BOOST_FOREACH
-#define PYTHON "/opt/local/bin/python"
+#define PYTHON "/usr/bin/python"
 
 class Mycelia : public Vrui::Application, public GLObject
 {
