@@ -1,7 +1,7 @@
-VRUIDIR = $(HOME)/Vrui-1.0
-include $(VRUIDIR)/etc/Vrui.makeinclude
+VRUIDIR = $(HOME)/usr/share/Vrui-2.2-003
+include $(VRUIDIR)/share/Vrui.makeinclude
 
-BASEDIR = /opt/local
+BASEDIR = /usr
 CC = $(BASEDIR)/bin/g++
 CFLAGS = -I $(BASEDIR)/include -I $(shell pwd)/src -Wno-deprecated -Wall -g -O2
 LINKFLAGS = -L$(BASEDIR)/lib -lGLU
@@ -51,7 +51,7 @@ LINKFLAGS += -lxmlrpc_server_abyss++ -lxmlrpc_server++ -lxmlrpc_server_abyss -lx
 all: mycelia
 
 mycelia: $(OBJS)
-	@$(CC) -o $@ $(VRUI_LINKFLAGS) $(LINKFLAGS) $+
+	@$(CC) $+ -o $@ $(VRUI_LINKFLAGS) $(LINKFLAGS) 
 
 pch: src/precompiled.hpp
 	@$(CC) -x c++-header $(VRUI_CFLAGS) $(CFLAGS) $<
