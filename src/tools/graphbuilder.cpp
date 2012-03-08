@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dataItem.hpp>
+#include "../dataitem.hpp"
 #include <tools/graphbuilder.hpp>
 
 using namespace std;
