@@ -126,6 +126,7 @@ private:
     double lastFrameTime;
     double rotationAngle;
     double rotationSpeed;
+    bool showingLogo;
     
     // misc
     int selectedNode;

@@ -39,6 +39,7 @@
 #include <tools/nodeselector.hpp>
 #include <windows/attributewindow.hpp>
 #include <windows/imagewindow.hpp>
+#include <Vrui/Tool.h>
 #ifdef __RPCSERVER__
 #include "rpcserver.hpp"
 #endif
@@ -219,6 +220,7 @@ Mycelia::Mycelia(int argc, char** argv, char** appDefaults)
     lastFrameTime = Vrui::getApplicationTime();
     rotationAngle = 0;
     rotationSpeed = 40.0;
+    showingLogo = false;
 
     // parsers
     chacoParser = new ChacoParser(this);
@@ -383,11 +385,10 @@ void Mycelia::drawEdgeLabels(const MyceliaDataItem* dataItem) const
 
 void Mycelia::drawLogo() const
 {
-    Vrui::setNavigationTransformation(Vrui::Point::origin, 30);
-
     glDisable(GL_LIGHTING);
-    glEnable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_2D);
     glDisable(GL_CULL_FACE);
+
 
     glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -403,6 +404,7 @@ void Mycelia::drawLogo() const
     glEnd();
     glPopMatrix();
 
+    glEnable(GL_TEXTURE_2D);
     glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glTranslatef(-4, 0, -1.5);
@@ -410,10 +412,7 @@ void Mycelia::drawLogo() const
     glScalef(FONT_MODIFIER, FONT_MODIFIER, FONT_MODIFIER);
     font->Render("mycelia.");
     glPopMatrix();
-
     glDisable(GL_TEXTURE_2D);
-
-    Vrui::requestUpdate();
 }
 
 void Mycelia::drawNode(int node, const MyceliaDataItem* dataItem) const
@@ -513,7 +512,7 @@ void Mycelia::drawSpanningTree(const MyceliaDataItem* dataItem) const
 
 void Mycelia::display(GLContextData& contextData) const
 {
-    if(gCopy->getNodeCount() == 0)
+    if(showingLogo)
     {
         drawLogo();
         return;
@@ -563,6 +562,34 @@ void Mycelia::frame()
     g->lock();
     *gCopy = *g;
     g->unlock();
+
+    if(gCopy->getNodeCount() == 0)
+    {
+        if (!showingLogo)
+        {
+            showingLogo = true;
+
+            // disable user navigation
+            Vrui::activateNavigationTool(reinterpret_cast<Vrui::Tool*>(this));
+        }
+
+        if (showingLogo)
+        {
+            // This resets navigation but still allows user navigation
+            //Vrui::setNavigationTransformation(Vrui::Point::origin, 30);
+
+            // update the rotating tetrahedron in the logo
+            Vrui::scheduleUpdate(Vrui::getApplicationTime()+0.02);
+        }
+    }
+    else
+    {
+        showingLogo = false;
+
+        // renable user navigation
+        Vrui::deactivateNavigationTool(reinterpret_cast<Vrui::Tool*>(this));
+    }
+
 }
 
 void Mycelia::initContext(GLContextData& contextData) const
