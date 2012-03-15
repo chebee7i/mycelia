@@ -107,9 +107,6 @@ private:
     // algorithms
     std::vector<int> predecessorVector;
     
-    // fonts
-    FTFont* font;
-    
     // generators
     GraphGenerator* generator;
     BarabasiGenerator* barabasiGenerator;
@@ -148,7 +145,7 @@ public:
     void drawEdge(const Vrui::Point&, const Vrui::Point&, bool, bool, const MyceliaDataItem*) const;
     void drawEdges(const MyceliaDataItem*) const;
     void drawEdgeLabels(const MyceliaDataItem*) const;
-    void drawLogo() const;
+    void drawLogo(const MyceliaDataItem*) const;
     void drawNode(int, const MyceliaDataItem*) const;
     void drawNodes(const MyceliaDataItem*) const;
     void drawNodeLabels(const MyceliaDataItem*) const;

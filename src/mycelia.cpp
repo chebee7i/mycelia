@@ -206,10 +206,6 @@ Mycelia::Mycelia(int argc, char** argv, char** appDefaults)
     statusWindow = new AttributeWindow(this, "Status", 1);
     statusWindow->hide();
 
-    // fonts
-    font = new FTGLTextureFont("fonts/Sansation_Light.ttf");
-    font->FaceSize(FONT_SIZE);
-
     // generators
     barabasiGenerator = new BarabasiGenerator(this);
     erdosGenerator = new ErdosGenerator(this);
@@ -377,13 +373,13 @@ void Mycelia::drawEdgeLabels(const MyceliaDataItem* dataItem) const
             glTranslatef(p[0] + nodeRadius, p[1] + nodeRadius, p[2] + nodeRadius);
             glRotate(inverseRotation);
             glScalef(scale, scale, scale);
-            font->Render(label.c_str());
+            dataItem->font->Render(label.c_str());
             glPopMatrix();
         }
     }
 }
 
-void Mycelia::drawLogo() const
+void Mycelia::drawLogo(const MyceliaDataItem* dataItem) const
 {
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
@@ -410,7 +406,7 @@ void Mycelia::drawLogo() const
     glTranslatef(-4, 0, -1.5);
     glRotate(90.0, Vrui::Vector(1, 0, 0));
     glScalef(FONT_MODIFIER, FONT_MODIFIER, FONT_MODIFIER);
-    font->Render("mycelia.");
+    dataItem->font->Render("mycelia.");
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);
 }
@@ -476,11 +472,11 @@ void Mycelia::drawNodeLabels(const MyceliaDataItem* dataItem) const
             glPushMatrix();
             glColor3f(0, 0, 0);
             glTranslatef(1, 0, -1);
-            font->Render(label.c_str());
+            dataItem->font->Render(label.c_str());
             glPopMatrix();
 
             glColor3f(1, 1, 1);
-            font->Render(label.c_str());
+            dataItem->font->Render(label.c_str());
             glPopMatrix();
         }
     }
@@ -512,13 +508,14 @@ void Mycelia::drawSpanningTree(const MyceliaDataItem* dataItem) const
 
 void Mycelia::display(GLContextData& contextData) const
 {
+    MyceliaDataItem* dataItem = contextData.retrieveDataItem<MyceliaDataItem>(this);
+
     if(showingLogo)
     {
-        drawLogo();
+        drawLogo(dataItem);
         return;
     }
 
-    MyceliaDataItem* dataItem = contextData.retrieveDataItem<MyceliaDataItem>(this);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_CULL_FACE);
 
@@ -595,6 +592,11 @@ void Mycelia::frame()
 void Mycelia::initContext(GLContextData& contextData) const
 {
     MyceliaDataItem* dataItem = new MyceliaDataItem();
+
+    // fonts
+    dataItem->font = new FTGLTextureFont("fonts/Sansation_Light.ttf");
+    dataItem->font->FaceSize(FONT_SIZE);
+
     contextData.addDataItem(this, dataItem);
 }
 

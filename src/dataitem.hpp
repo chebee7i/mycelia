@@ -33,7 +33,10 @@ public:
     GLuint graphList;
     GLuint nodeList;
     int graphListVersion;
-    
+
+    // fonts
+    FTFont* font;
+
     MyceliaDataItem()
     {
         /*defaultNodeMaterial = new GLMaterial(GLMaterial::Color(1.0, 1.0, 1.0));
