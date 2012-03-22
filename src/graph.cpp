@@ -67,8 +67,8 @@ void Graph::init()
     
     materialVector.clear();
     materialVector.resize(4);
-    materialVector[MATERIAL_NODE_DEFAULT] = new GLMaterial(GLMaterial::Color(1.0, 1.0, 1.0));
-    materialVector[MATERIAL_EDGE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.3, 0.3, 0.3));
+    materialVector[MATERIAL_NODE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.0, 1.0, 1.0));
+    materialVector[MATERIAL_EDGE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.5, 0.5, 0.5));
     materialVector[MATERIAL_SELECTED] = new GLMaterial(GLMaterial::Color(1.0, 0.5, 1.0));
     materialVector[MATERIAL_SELECTED_PREVIOUS] = new GLMaterial(GLMaterial::Color(1.0, 0.0, 1.0));
     
