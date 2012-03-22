@@ -381,16 +381,18 @@ void Mycelia::drawEdgeLabels(const MyceliaDataItem* dataItem) const
 
 void Mycelia::drawLogo(const MyceliaDataItem* dataItem) const
 {
+    // Haven't figure out what Render() is changing...but unless we push 
+    // GL_TEXTURE_BIT, the rendered text disappears on the second call to 
+    // display() on some platforms (eg Linux on Intel Mac).
+    glPushAttrib(GL_TEXTURE_BIT);
+
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_CULL_FACE);
-
-
-    glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPushMatrix();
     glTranslatef(-6.5, 0, 0);
     glRotate(rotationAngle, Vrui::Vector(1, 1, 1));
-
     glBegin(GL_TRIANGLE_STRIP);
     glColor3f(1, 1, 1); glVertex3f(1.5, 1.5, 1.5);
     glColor3f(1, 0, 0); glVertex3f(-1.5, -1.5, 1.5);
@@ -399,16 +401,17 @@ void Mycelia::drawLogo(const MyceliaDataItem* dataItem) const
     glColor3f(1, 1, 1); glVertex3f(1.5, 1.5, 1.5);
     glEnd();
     glPopMatrix();
-
-    glEnable(GL_TEXTURE_2D);
-    glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    glPushMatrix();
     glTranslatef(-4, 0, -1.5);
     glRotate(90.0, Vrui::Vector(1, 0, 0));
     glScalef(FONT_MODIFIER, FONT_MODIFIER, FONT_MODIFIER);
     dataItem->font->Render("mycelia.");
     glPopMatrix();
-    glDisable(GL_TEXTURE_2D);
+
+    glPopAttrib();
+
 }
 
 void Mycelia::drawNode(int node, const MyceliaDataItem* dataItem) const
@@ -516,9 +519,6 @@ void Mycelia::display(GLContextData& contextData) const
         return;
     }
 
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_CULL_FACE);
-
     // re-create display list if it's been updated
     if(dataItem->graphListVersion != gCopy->getVersion())
     {
@@ -533,9 +533,15 @@ void Mycelia::display(GLContextData& contextData) const
     {
         glCallList(dataItem->graphList);
 
+        // Haven't figure out what FTGLTextureFont::Render() is changing...
+        // but unless we push GL_TEXTURE_BIT, the rendered text disappears on 
+        // the second call to display() on some platforms 
+        // (eg Linux on Intel Mac).
         glDisable(GL_LIGHTING);
+        glPushAttrib(GL_TEXTURE_BIT);
         drawNodeLabels(dataItem);
         drawEdgeLabels(dataItem);
+        glPopAttrib();
         glEnable(GL_LIGHTING);
 
         if(shortestPathButton->getToggle())
@@ -543,9 +549,6 @@ void Mycelia::display(GLContextData& contextData) const
             drawShortestPath(dataItem);
         }
     }
-
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_TEXTURE_2D);
 
 }
 
@@ -565,25 +568,17 @@ void Mycelia::frame()
         if (!showingLogo)
         {
             showingLogo = true;
-
             // disable user navigation
             Vrui::activateNavigationTool(reinterpret_cast<Vrui::Tool*>(this));
         }
 
         if (showingLogo)
         {
-            // Essentially, Vrui defines the origin at the center of
-            // the window's original location. So if you move the window,
-            // then anything drawn will not appear at the center
-            // of the current window (at its new position).
-            // Since we want the logo always to be at the center of the
-            // window, no matter where it is, we must reset the view.
-            // That is, we tell Vrui to move the camera of the window
-            // so that it points to the origin again.
-            //
-            // When you move the window, it moves the camera...so we are
-            // essentially saying: move the camera (without moving the
-            // window) back to pointing at the origin.
+            // With the dummy navigation tool enabled, the navigation tool
+            // tied to the device is blocked.  This other navigation tool
+            // was actively updating the navigation transformation whenever
+            // the window containing Vrui moved.  Since we are blocking this 
+            // tool, we must manually reset the navigation transformation.
             Vrui::setNavigationTransformation(Vrui::Point::origin, 30);
 
             // update the rotating tetrahedron in the logo
