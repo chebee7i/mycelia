@@ -987,10 +987,10 @@ void Mycelia::resetNavigationCallback(Misc::CallbackData* cbData)
     Vrui::Point& center = p.first;
     Vrui::Scalar& radius = p.second;
 
-    nodeRadius = radius / 150;
+    nodeRadius = radius / 80;
     arrowHeight = nodeRadius / 2;
     arrowWidth = arrowHeight / 2;
-    edgeThickness = nodeRadius / 10;
+    edgeThickness = nodeRadius / 7;
     edgeOffset = nodeRadius + arrowHeight;
 
     Vrui::setNavigationTransformation(center, radius);
