@@ -572,8 +572,19 @@ void Mycelia::frame()
 
         if (showingLogo)
         {
-            // This resets navigation but still allows user navigation
-            //Vrui::setNavigationTransformation(Vrui::Point::origin, 30);
+            // Essentially, Vrui defines the origin at the center of
+            // the window's original location. So if you move the window,
+            // then anything drawn will not appear at the center
+            // of the current window (at its new position).
+            // Since we want the logo always to be at the center of the
+            // window, no matter where it is, we must reset the view.
+            // That is, we tell Vrui to move the camera of the window
+            // so that it points to the origin again.
+            //
+            // When you move the window, it moves the camera...so we are
+            // essentially saying: move the camera (without moving the
+            // window) back to pointing at the origin.
+            Vrui::setNavigationTransformation(Vrui::Point::origin, 30);
 
             // update the rotating tetrahedron in the logo
             Vrui::scheduleUpdate(Vrui::getApplicationTime()+0.02);
