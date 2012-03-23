@@ -1,5 +1,18 @@
-VRUIDIR = $(HOME)/usr/share/Vrui-2.2-003
-include $(VRUIDIR)/share/Vrui.makeinclude
+VRUI_MAKEDIR =$(HOME)/usr/share/Vrui-2.3-003
+include $(VRUI_MAKEDIR)/Vrui.makeinclude
+
+INSTALLDIR = /usr/local
+
+ifeq ($(INSTALLDIR), /)
+	BININSTALLDIR = /usr/bin
+	SHAREINSTALLDIR = /usr/share/mycelia
+else
+	BININSTALLDIR = $(INSTALLDIR)/bin
+	SHAREINSTALLDIR = $(INSTALLDIR)/share/mycelia
+endif
+
+FONTINSTALLDIR = $(SHAREINSTALLDIR)/fonts
+DATAINSTALLDIR = $(SHAREINSTALLDIR)/data
 
 BASEDIR = /usr
 CC = $(BASEDIR)/bin/g++
@@ -48,6 +61,8 @@ LINKFLAGS += -lxmlrpc_server_abyss++ -lxmlrpc_server++ -lxmlrpc_server_abyss -lx
 	@echo Compiling $<...
 	@$(NVCC) $(NVCC_CFLAGS) -c $<
 
+mycelia.o: CFLAGS += -DRESOURCEDIR='"$(SHAREINSTALLDIR)"'
+
 all: mycelia
 
 mycelia: $(OBJS)
@@ -55,6 +70,15 @@ mycelia: $(OBJS)
 
 pch: src/precompiled.hpp
 	@$(CC) -x c++-header $(VRUI_CFLAGS) $(CFLAGS) $<
+
+install: all
+	@echo Installing mycelia...
+	@mkdir -p $(BININSTALLDIR)
+	@mkdir -p $(FONTINSTALLDIR)
+	@mkdir -p $(DATAINSTALLDIR)
+	@cp mycelia $(BININSTALLDIR)
+	@cp fonts/* $(FONTINSTALLDIR)
+	@cp data/* $(DATAINSTALLDIR)
 
 clean:
 	rm -f $(OBJS)
