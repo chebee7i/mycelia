@@ -185,8 +185,9 @@ Mycelia::Mycelia(int argc, char** argv, char** appDefaults)
     Vrui::setMainMenu(mainMenuPopup);
 
     // windows
-    char cwd[1024];
-    string dataDirectory = string(getcwd(cwd, 1024)) + "/data";
+    string dataDirectory(RESOURCEDIR);
+    dataDirectory += "/data";
+   
     IO::DirectoryPtr dirPtr = IO::openDirectory(dataDirectory.c_str());
 
     fileWindow = new GLMotif::FileSelectionDialog(mainMenu->getManager(),
@@ -600,7 +601,9 @@ void Mycelia::initContext(GLContextData& contextData) const
     MyceliaDataItem* dataItem = new MyceliaDataItem();
 
     // fonts
-    dataItem->font = new FTGLTextureFont("fonts/Sansation_Light.ttf");
+    std::string fontDirectory(RESOURCEDIR);
+    fontDirectory += "/fonts";
+    dataItem->font = new FTGLTextureFont((fontDirectory+"/Sansation_Light.ttf").c_str());
     dataItem->font->FaceSize(FONT_SIZE);
 
     contextData.addDataItem(this, dataItem);
