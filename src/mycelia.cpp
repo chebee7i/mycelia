@@ -54,6 +54,25 @@ using namespace std;
 extern "C" { void gpuLayout(float4*, int*, int); }
 #endif
 
+/** Returns the base directory for resource files.
+*
+* Returns RESOURCEDIR if it exists or
+* returns "." to search the current directory instead.
+*/
+std::string getResourceDir()
+{
+    std::string dir(RESOURCEDIR);
+
+    try {
+        IO::DirectoryPtr dirPtr = IO::openDirectory(dir.c_str());
+    }
+    catch (IO::Directory::OpenError e)
+    {
+        dir = ".";
+    }
+    return dir;
+}
+
 Mycelia::Mycelia(int argc, char** argv, char** appDefaults)
     : Vrui::Application(argc, argv, appDefaults)
 {
@@ -185,7 +204,7 @@ Mycelia::Mycelia(int argc, char** argv, char** appDefaults)
     Vrui::setMainMenu(mainMenuPopup);
 
     // windows
-    string dataDirectory(RESOURCEDIR);
+    string dataDirectory(getResourceDir());
     dataDirectory += "/data";
    
     IO::DirectoryPtr dirPtr = IO::openDirectory(dataDirectory.c_str());
@@ -601,7 +620,7 @@ void Mycelia::initContext(GLContextData& contextData) const
     MyceliaDataItem* dataItem = new MyceliaDataItem();
 
     // fonts
-    std::string fontDirectory(RESOURCEDIR);
+    std::string fontDirectory(getResourceDir());
     fontDirectory += "/fonts";
     dataItem->font = new FTGLTextureFont((fontDirectory+"/Sansation_Light.ttf").c_str());
     dataItem->font->FaceSize(FONT_SIZE);
