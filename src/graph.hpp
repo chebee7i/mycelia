@@ -42,18 +42,28 @@ public:
     Vrui::Point position;
     Vrui::Vector velocity;
     std::tr1::unordered_map<int, std::list<int> > adjacent;
+
+
     std::string label;
+    std::string type;
+
+    // These are used if the type is "image".
+    std::string imgPath;
+    int imageWidth;
+    int imageHeight;
+
     Attributes attributes;
     float size;
     int component;
     int inDegree;
     int outDegree;
     int material;
-    
+
     Node()
     {
         position = Vrui::Point(0, 0, 0);
         velocity = Vrui::Vector(0, 0, 0);
+        type = "shape";
         size = 1;
         component = 0;
         inDegree = 0;
@@ -69,7 +79,7 @@ public:
     int target;
     std::string label;
     float weight;
-    
+
     Edge() : source(0), target(0) { weight = 1; }
     Edge(int s, int t) : source(s), target(t) { weight = 1; }
 };
@@ -78,25 +88,25 @@ class Graph
 {
 private:
     Mycelia* application;
-    
+
     std::tr1::unordered_map<int, Node> nodeMap;
     std::set<int> nodes;
     int nodeId;
-    
+
     std::tr1::unordered_map<int, Edge> edgeMap;
     std::set<int> edges;
     int edgeId;
-    
+
     std::vector<GLMaterial*> materialVector;
-    
+
     int version;
     Threads::Mutex mutex;
     const std::list<int> empty; // returned by getEdges when none exist
-    
+
 public:
     Graph(Mycelia*);
     Graph& operator=(const Graph&);
-    
+
     // general
     void clear();
     void init();
@@ -109,7 +119,7 @@ public:
     void write(const char*);
     void lock() { mutex.lock(); }
     void unlock() { mutex.unlock(); }
-    
+
     // edges
     const int addEdge(int, int);
     void clearEdges();
@@ -126,7 +136,7 @@ public:
     const bool isValidEdge(int) const;
     void setEdgeLabel(int, const std::string&);
     void setEdgeWeight(int, float);
-    
+
     // nodes
     const int addNode();
     const int addNode(const Vrui::Point&);
@@ -151,11 +161,12 @@ public:
     void setNodeColor(int, double, double, double, double = 1.0);
     void setNodeLabel(int, const std::string&);
     void setNodePosition(int, const Vrui::Point&);
+    void setNodeType(int, const std::string&);
     void setNodeVelocity(int, const Vrui::Vector&);
     void setNodeSize(int, float);
     void updateNodePosition(int, const Vrui::Vector&);
     void updateNodeVelocity(int, const Vrui::Vector&);
-    
+
     // boost wrappers
     boost::BoostGraph toBoost();
     std::vector<double> getBetweennessCentrality();

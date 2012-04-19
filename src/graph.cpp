@@ -29,15 +29,15 @@ Graph& Graph::operator=(const Graph& g)
 {
     application = g.application;
     version = g.version;
-    
+
     nodes = g.nodes;
     nodeMap = g.nodeMap;
-    
+
     edges = g.edges;
     edgeMap = g.edgeMap;
-    
+
     materialVector = g.materialVector;
-    
+
     return *this;
 }
 
@@ -48,9 +48,9 @@ void Graph::clear()
 {
     application->stopLayout();
     mutex.lock();
-    
+
     init();
-    
+
     mutex.unlock();
     application->clearSelections();
 }
@@ -60,18 +60,18 @@ void Graph::init()
     nodes.clear();
     nodeMap.clear();
     nodeMap.rehash(1000);
-    
+
     edges.clear();
     edgeMap.clear();
     edgeMap.rehash(1000);
-    
+
     materialVector.clear();
     materialVector.resize(4);
     materialVector[MATERIAL_NODE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.0, 1.0, 1.0));
     materialVector[MATERIAL_EDGE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.5, 0.5, 0.5));
     materialVector[MATERIAL_SELECTED] = new GLMaterial(GLMaterial::Color(1.0, 0.5, 1.0));
     materialVector[MATERIAL_SELECTED_PREVIOUS] = new GLMaterial(GLMaterial::Color(1.0, 0.0, 1.0));
-    
+
     version = -1;
     nodeId = -1;
     edgeId = -1;
@@ -82,33 +82,33 @@ const pair<Vrui::Point, Vrui::Scalar> Graph::locate()
     Vrui::Point center(0, 0, 0);
     Vrui::Scalar maxDistance = 0;
     int counted = 1;
-    
+
     mutex.lock();
-    
+
     foreach(int source, nodes)
     {
         if(!application->isSelectedComponent(source))
         {
             continue;
         }
-        
+
         foreach(int target, nodes)
         {
             if(!application->isSelectedComponent(target))
             {
                 continue;
             }
-            
+
             Vrui::Scalar d = Geometry::mag(nodeMap[source].position - nodeMap[target].position);
             if(d > maxDistance) maxDistance = d;
         }
-        
+
         center += (nodeMap[source].position - center) * (1.0 / counted);
         counted++;
     }
-    
+
     mutex.unlock();
-    
+
     if(maxDistance == 0) maxDistance = 30;
     return pair<Vrui::Point, Vrui::Scalar>(center, maxDistance);
 }
@@ -119,7 +119,7 @@ const GLMaterial* Graph::getMaterial(int materialId)
     {
         return materialVector[MATERIAL_NODE_DEFAULT];
     }
-    
+
     return materialVector[materialId];
 }
 
@@ -131,7 +131,7 @@ const int Graph::getVersion() const
 void Graph::randomizePositions(int radius)
 {
     mutex.lock();
-    
+
     foreach(int node, nodes)
     {
         float x = rand() % (2 * radius) - radius;
@@ -139,19 +139,19 @@ void Graph::randomizePositions(int radius)
         float z = rand() % (2 * radius) - radius;
         nodeMap[node].position = Vrui::Point(x, y, z);
     }
-    
+
     mutex.unlock();
 }
 
 void Graph::resetVelocities()
 {
     mutex.lock();
-    
+
     foreach(int node, nodes)
     {
         nodeMap[node].velocity = Vrui::Vector(0, 0, 0);
     }
-    
+
     mutex.unlock();
 }
 
@@ -164,10 +164,10 @@ void Graph::update()
 void Graph::write(const char* filename)
 {
     mutex.lock();
-    
+
     ofstream out(filename);
     out << "digraph G {" << endl;
-    
+
     foreach(int node, nodes)
     {
         out << "  n" << node << "[ pos=\""
@@ -175,15 +175,15 @@ void Graph::write(const char* filename)
             << nodeMap[node].position[1] << ","
             << nodeMap[node].position[2] << "\" ];\n";
     }
-    
+
     foreach(int edge, edges)
     {
         out << "  n" << edgeMap[edge].source << " -> n" << edgeMap[edge].target << ";\n";
     }
-    
+
     out << "}\n";
     cout << "wrote " << filename << endl;
-    
+
     mutex.unlock();
 }
 
@@ -193,40 +193,40 @@ void Graph::write(const char* filename)
 const int Graph::addEdge(int source, int target)
 {
     mutex.lock();
-    
+
     if(!isValidNode(source) || !isValidNode(target))
     {
         cout << "invalid node(s): " << source << " " << target << endl;
         mutex.unlock();
         return -1;
     }
-    
+
     edgeId++;
     edges.insert(edgeId);
     edgeMap[edgeId] = Edge(source, target);
-    
+
     nodeMap[source].outDegree++;
     nodeMap[target].inDegree++;
     nodeMap[source].adjacent[target].push_back(edgeId);
-    
+
     mutex.unlock();
     update();
-    
+
     return edgeId;
 }
 
 void Graph::clearEdges()
 {
     mutex.lock();
-    
+
     foreach(int node, nodes)
     {
         nodeMap[node].adjacent.clear();
     }
-    
+
     edges.clear();
     edgeMap.clear();
-    
+
     mutex.unlock();
     update();
 }
@@ -234,23 +234,23 @@ void Graph::clearEdges()
 const int Graph::deleteEdge(int edge)
 {
     mutex.lock();
-    
+
     if(!isValidEdge(edge))
     {
         mutex.unlock();
         return -1;
     }
-    
+
     Edge& e = edgeMap[edge];
     list<int>& neighbors = nodeMap[e.source].adjacent[e.target];
     neighbors.erase(find(neighbors.begin(), neighbors.end(), edge));
-    
+
     edges.erase(edge);
     edgeMap.erase(edge);
-    
+
     mutex.unlock();
     update();
-    
+
     return edge;
 }
 
@@ -263,7 +263,7 @@ const list<int>& Graph::getEdges(int source, int target)
 {
     if(hasEdge(source, target))
         return nodeMap[source].adjacent[target];
-        
+
     return empty;
 }
 
@@ -310,7 +310,7 @@ const bool Graph::isValidEdge(int edge) const
 void Graph::setEdgeLabel(int edge, const std::string& label)
 {
     edgeMap[edge].label = string(label);
-    
+
     update();
 }
 
@@ -325,17 +325,17 @@ void Graph::setEdgeWeight(int edge, float weight)
 const int Graph::addNode()
 {
     mutex.lock();
-    
+
     Node n;
     n.position = Vrui::Point(VruiHelp::randomFloat(), VruiHelp::randomFloat(), VruiHelp::randomFloat());
-    
+
     nodeId++;
     nodes.insert(nodeId);
     nodeMap[nodeId] = n;
-    
+
     mutex.unlock();
     update();
-    
+
     return nodeId;
 }
 
@@ -361,37 +361,37 @@ const int Graph::deleteNode()
 const int Graph::deleteNode(int node)
 {
     mutex.lock();
-    
+
     if(!isValidNode(node))
     {
         mutex.unlock();
         return -1;
     }
-    
+
     vector<int> killList(0);
-    
+
     foreach(int edge, edges)
     {
         Edge& e = edgeMap[edge];
-        
+
         if(e.source == node || e.target == node)
         {
             killList.push_back(edge);
         }
     }
-    
+
     foreach(int edge, killList)
     {
         edges.erase(edge);
         edgeMap.erase(edge);
     }
-    
+
     nodes.erase(node);
     nodeMap.erase(node);
-    
+
     mutex.unlock();
     update();
-    
+
     return node;
 }
 
@@ -474,7 +474,7 @@ void Graph::setNodeColor(int node, double r, double g, double b, double a)
 {
     GLMaterial::Color c(r, g, b, a);
     int materialId = -1;
-    
+
     // look for color in the cache
     for(int i = 0; i < (int)materialVector.size(); i++)
     {
@@ -484,30 +484,37 @@ void Graph::setNodeColor(int node, double r, double g, double b, double a)
             break;
         }
     }
-    
+
     // if not found, add it
     if(materialId == -1)
     {
         materialVector.push_back(new GLMaterial(c));
         materialId = materialVector.size() - 1;
     }
-    
+
     nodeMap[node].material = materialId;
-    
+
     update();
 }
 
 void Graph::setNodeLabel(int node, const std::string& label)
 {
     nodeMap[node].label = label;
-    
+
     update();
 }
 
 void Graph::setNodePosition(int node, const Vrui::Point& position)
 {
     nodeMap[node].position = position;
-    
+
+    update();
+}
+
+void Graph::setNodeType(int node, const string& type)
+{
+    nodeMap[node].type = type;
+
     update();
 }
 
@@ -519,14 +526,14 @@ void Graph::setNodeVelocity(int node, const Vrui::Vector& velocity)
 void Graph::setNodeSize(int node, float size)
 {
     nodeMap[node].size = size;
-    
+
     update();
 }
 
 void Graph::updateNodePosition(int node, const Vrui::Vector& delta)
 {
     nodeMap[node].position += delta;
-    
+
     update();
 }
 
@@ -542,17 +549,17 @@ void Graph::updateNodeVelocity(int node, const Vrui::Vector& delta)
 boost::BoostGraph Graph::toBoost()
 {
     boost::BoostGraph g;
-    
+
     for(int node = 0; node > getNodeCount(); node++)
     {
         boost::add_vertex(g);
     }
-    
+
     for(int edge = 0; edge < getEdgeCount(); edge++)
     {
         boost::add_edge(edgeMap[edge].source, edgeMap[edge].target, g);
     }
-    
+
     return g;
 }
 
@@ -561,14 +568,14 @@ boost::BoostGraph Graph::toBoost()
 vector<double> Graph::getBetweennessCentrality()
 {
     mutex.lock();
-    
+
     boost::BoostGraph g = toBoost();
     vector<double> bc(getNodeCount());
-    
+
     if(getNodeCount() == 0) return bc;
     brandes_betweenness_centrality(g,
             make_iterator_property_map(bc.begin(), boost::get(boost::vertex_index, g)));
-            
+
     mutex.unlock();
     return bc;
 }
@@ -576,11 +583,11 @@ vector<double> Graph::getBetweennessCentrality()
 vector<int> Graph::getShortestPath()
 {
     mutex.lock();
-    
+
     boost::BoostGraph g = toBoost();
     vector<int> p(getNodeCount());
     vector<int> d(getNodeCount());
-    
+
     if(getNodeCount() == 0) return p;
     dijkstra_shortest_paths(g,
             application->getPreviousNode(),
@@ -593,7 +600,7 @@ vector<int> Graph::getShortestPath()
             std::numeric_limits<int>::max(), // max dist
             0, // zero dist
             boost::default_dijkstra_visitor());
-            
+
     mutex.unlock();
     return p;
 }
@@ -601,13 +608,13 @@ vector<int> Graph::getShortestPath()
 vector<int> Graph::getSpanningTree()
 {
     mutex.lock();
-    
+
     boost::BoostGraph g = toBoost();
     vector<int> p(getNodeCount());
-    
+
     if(getNodeCount() == 0) return p;
     prim_minimum_spanning_tree(g, &p[0]);
-    
+
     mutex.unlock();
     return p;
 }
@@ -615,16 +622,16 @@ vector<int> Graph::getSpanningTree()
 void Graph::setComponents()
 {
     mutex.lock();
-    
+
     boost::BoostGraph g = toBoost();
     vector<int> c(getNodeCount());
-    
+
     connected_components(g, &c[0]);
-    
+
     foreach(int node, nodes)
     {
         nodeMap[node].component = c[node];
     }
-    
+
     mutex.unlock();
 }
