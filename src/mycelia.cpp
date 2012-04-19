@@ -762,16 +762,14 @@ void Mycelia::fileCancelAction(GLMotif::FileSelectionDialog::CancelCallbackData*
     VruiHelp::hide(fileWindow);
 }
 
-void Mycelia::fileOpenAction(GLMotif::FileSelectionDialog::OKCallbackData* cbData)
+void Mycelia::fileOpen(string &filename)
 {
-    clearCallback(0);
+    // Note: endsWith() requires that filename not be const.
 
     // set to true if parser detects nodes with explicit positions
     skipLayout = false;
 
     // call appropriate parser
-    string filename = cbData->getSelectedPath();
-
     if(VruiHelp::endsWith(filename, ".dot"))
     {
         dotParser->parse(filename);
@@ -792,6 +790,14 @@ void Mycelia::fileOpenAction(GLMotif::FileSelectionDialog::OKCallbackData* cbDat
     // reset navigation here in case skipLayout is true
     resetNavigationCallback(0);
     resetLayoutCallback(0);
+}
+
+void Mycelia::fileOpenAction(GLMotif::FileSelectionDialog::OKCallbackData* cbData)
+{
+    clearCallback(0);
+    string filename = cbData->getSelectedPath();
+    fileOpen(filename);
+
 }
 
 void Mycelia::generatorCallback(GLMotif::RadioBox::ValueChangedCallbackData* cbData)

@@ -151,6 +151,7 @@ public:
     void drawNodeLabels(const MyceliaDataItem*) const;
     void drawShortestPath(const MyceliaDataItem*) const;
     void drawSpanningTree(const MyceliaDataItem*) const;
+    void fileOpen(std::string &filename);
     bool isSelectedComponent(int) const;
     
     // layout functions
