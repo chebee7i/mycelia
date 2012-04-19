@@ -36,10 +36,10 @@ private:
     std::string callbackMethod;
     xmlrpc_c::clientSimple callbackClient;
     int port;
-    
+
 public:
     RpcServer(Mycelia*);
-    
+
     void* run();
     void callback(int);
     void setCallback(const std::string&, const std::string&);
@@ -48,18 +48,18 @@ public:
 class AddEdge : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     AddEdge(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int source = params.getInt(0);
         int target = params.getInt(1);
         params.verifyEnd(2);
-        
+
         int edge = app->g->addEdge(source, target);
-        
+
         *retval = xmlrpc_c::value_int(edge);
     }
 };
@@ -67,14 +67,14 @@ public:
 class AddNode : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     AddNode(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int node = app->g->addNode();
-        
+
         *retval = xmlrpc_c::value_int(node);
     }
 };
@@ -82,14 +82,14 @@ public:
 class Center : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     Center(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         app->resetNavigationCallback(0);
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -97,14 +97,14 @@ public:
 class Clear : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     Clear(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         app->g->clear();
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -112,30 +112,46 @@ public:
 class ClearEdges : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     ClearEdges(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         app->g->clearEdges();
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
 
+class Draw : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    Draw(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        app->g->update();
+    
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
+
 class DeleteEdge : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     DeleteEdge(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int edge = params.getInt(0);
         params.verifyEnd(1);
-        
+
         *retval = xmlrpc_c::value_int(app->g->deleteEdge(edge));
     }
 };
@@ -143,15 +159,15 @@ public:
 class DeleteNode : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     DeleteNode(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int node = params.getInt(0);
         params.verifyEnd(1);
-        
+
         *retval = xmlrpc_c::value_int(app->g->deleteNode(node));
     }
 };
@@ -159,14 +175,32 @@ public:
 class Layout : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     Layout(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         app->resetLayoutCallback(0);
-        
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
+class OpenFile : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    OpenFile(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        std::string filepath = params.getString(0);
+        params.verifyEnd(1);
+
+        app->fileOpen(filepath);
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -175,15 +209,15 @@ class SetCallback : public xmlrpc_c::method
 {
     Mycelia* app;
     RpcServer* server;
-    
+
 public:
     SetCallback(Mycelia* app, RpcServer* server) : app(app), server(server) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         server->setCallback(params.getString(0), params.getString(1));
         params.verifyEnd(2);
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -191,18 +225,18 @@ public:
 class SetEdgeLabel : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     SetEdgeLabel(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int edge = params.getInt(0);
         std::string label = params.getString(1);
         params.verifyEnd(2);
-        
+
         app->g->setEdgeLabel(edge, label);
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -210,18 +244,18 @@ public:
 class SetEdgeWeight : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     SetEdgeWeight(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int edge = params.getInt(0);
         double weight = params.getDouble(1);
         params.verifyEnd(2);
-        
+
         app->g->setEdgeWeight(edge, weight);
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -229,17 +263,37 @@ public:
 class SetLayoutType : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     SetLayoutType(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int layout = params.getInt(0);
         params.verifyEnd(1);
-        
+
         app->setLayoutType(layout);
-        
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
+class SetNodeAttribute : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    SetNodeAttribute(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        int node = params.getInt(0);
+        std::string key = params.getString(1);
+        std::string val = params.getString(2);
+        params.verifyEnd(3);
+
+        app->g->setNodeAttribute(node, key, val);
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -247,10 +301,10 @@ public:
 class SetNodeColor : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     SetNodeColor(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int node = params.getInt(0);
@@ -259,9 +313,9 @@ public:
         double b = params.getDouble(3);
         double a = params.getDouble(4);
         params.verifyEnd(5);
-        
+
         app->g->setNodeColor(node, r, g, b, a);
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -269,18 +323,18 @@ public:
 class SetNodeLabel : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     SetNodeLabel(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int node = params.getInt(0);
         std::string label = params.getString(1);
         params.verifyEnd(2);
-        
+
         app->g->setNodeLabel(node, label);
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -288,18 +342,37 @@ public:
 class SetNodeSize : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     SetNodeSize(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         int node = params.getInt(0);
         double size = params.getDouble(1);
         params.verifyEnd(2);
-        
+
         app->g->setNodeSize(node, size);
-        
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
+class SetNodeType : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    SetNodeType(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        int node = params.getInt(0);
+        std::string type = params.getString(1);
+        params.verifyEnd(2);
+
+        app->g->setNodeType(node, type);
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -307,17 +380,17 @@ public:
 class SetStatus : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     SetStatus(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         std::string status = params.getString(0);
         params.verifyEnd(1);
-        
+
         app->setStatus(status.c_str());
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -325,14 +398,14 @@ public:
 class StartLayout  : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     StartLayout(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         app->startLayout();
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -340,14 +413,14 @@ public:
 class StopLayout  : public xmlrpc_c::method
 {
     Mycelia* app;
-    
+
 public:
     StopLayout(Mycelia* app) : app(app) {}
-    
+
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         app->stopLayout();
-        
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
