@@ -30,7 +30,7 @@ RpcServer::RpcServer(Mycelia* app) : app(app)
 void* RpcServer::run()
 {
     xmlrpc_c::registry r;
-    
+
     r.addMethod("clear", new Clear(app));
     r.addMethod("clear_edges", new ClearEdges(app));
     r.addMethod("center", new Center(app));
@@ -40,6 +40,7 @@ void* RpcServer::run()
     r.addMethod("layout", new Layout(app));
     r.addMethod("add_edge", new AddEdge(app));
     r.addMethod("add_node", new AddNode(app));
+    r.addMethod("add_node_at", new AddNodeAt(app));
     r.addMethod("open_file", new OpenFile(app));
     r.addMethod("set_callback", new SetCallback(app, this));
     r.addMethod("set_edge_label", new SetEdgeLabel(app));
@@ -50,24 +51,26 @@ void* RpcServer::run()
     r.addMethod("set_node_label", new SetNodeLabel(app));
     r.addMethod("set_node_size", new SetNodeSize(app));
     r.addMethod("set_node_type", new SetNodeType(app));
+    r.addMethod("set_node_image_path", new SetNodeImagePath(app));
     r.addMethod("set_status", new SetStatus(app));
+    r.addMethod("set_texture_node_mode", new SetTextureNodeMode(app));
     r.addMethod("start_layout", new StartLayout(app));
     r.addMethod("stop_layout", new StopLayout(app));
-    
+
     xmlrpc_c::serverAbyss s(r, port);
     s.run();
-    
+
     return 0;
 }
 
 void RpcServer::callback(int node)
 {
     if(!Vrui::isMaster() || callbackUrl.size() == 0 || callbackMethod.size() == 0) return;
-    
+
     xmlrpc_c::value callbackResult;
     xmlrpc_c::paramList params;
     params.add(xmlrpc_c::value_int(node));
-    
+
     callbackClient.call(callbackUrl, callbackMethod, params, &callbackResult);
 }
 

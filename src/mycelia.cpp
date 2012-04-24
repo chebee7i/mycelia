@@ -40,6 +40,8 @@
 #include <windows/attributewindow.hpp>
 #include <windows/imagewindow.hpp>
 #include <Vrui/Tool.h>
+#include <Vrui/DisplayState.h>
+#include <GL/GLGeometryWrappers.h>
 #ifdef __RPCSERVER__
 #include "rpcserver.hpp"
 #endif
@@ -206,7 +208,7 @@ Mycelia::Mycelia(int argc, char** argv, char** appDefaults)
     // windows
     string dataDirectory(getResourceDir());
     dataDirectory += "/data";
-   
+
     IO::DirectoryPtr dirPtr = IO::openDirectory(dataDirectory.c_str());
 
     fileWindow = new GLMotif::FileSelectionDialog(mainMenu->getManager(),
@@ -285,7 +287,18 @@ void Mycelia::buildGraphList(MyceliaDataItem* dataItem) const
     glEndList();
 
     glNewList(dataItem->graphList, GL_COMPILE);
-    drawNodes(dataItem);
+
+    // Camera aligned texture nodes cannot be part of the display list.
+    if (gCopy->getTextureNodeMode() == "align")
+    {
+        std::string filter = "image";
+        drawNodes(dataItem, filter);
+    }
+    else
+    {
+        drawNodes(dataItem);
+    }
+
     drawEdges(dataItem);
     glEndList();
 }
@@ -401,8 +414,8 @@ void Mycelia::drawEdgeLabels(const MyceliaDataItem* dataItem) const
 
 void Mycelia::drawLogo(const MyceliaDataItem* dataItem) const
 {
-    // Haven't figure out what Render() is changing...but unless we push 
-    // GL_TEXTURE_BIT, the rendered text disappears on the second call to 
+    // Haven't figure out what Render() is changing...but unless we push
+    // GL_TEXTURE_BIT, the rendered text disappears on the second call to
     // display() on some platforms (eg Linux on Intel Mac).
     glPushAttrib(GL_TEXTURE_BIT);
 
@@ -411,6 +424,7 @@ void Mycelia::drawLogo(const MyceliaDataItem* dataItem) const
     glDisable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glPushMatrix();
+
     glTranslatef(-6.5, 0, 0);
     glRotate(rotationAngle, Vrui::Vector(1, 1, 1));
     glBegin(GL_TRIANGLE_STRIP);
@@ -434,7 +448,66 @@ void Mycelia::drawLogo(const MyceliaDataItem* dataItem) const
 
 }
 
-void Mycelia::drawNode(int node, const MyceliaDataItem* dataItem) const
+bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
+{
+    std::string imagePath = gCopy->getNodeImagePath(node);
+
+    std::pair<GLuint, std::pair<float, float> > texturePair = dataItem->getTextureId(imagePath);
+    GLuint imageId = texturePair.first;
+    float W = texturePair.second.first;
+    float H = texturePair.second.second;
+
+    if (imageId == 0) return false;
+
+    const Vrui::NavTransform& inv = Vrui::getInverseNavigationTransformation();
+    const Vrui::Rotation invRotation = inv.getRotation();
+
+    /**
+    float width = W / H * Vrui::getDisplaySize()/3;
+    float height =  Vrui::getDisplaySize()/2;
+    **/
+    float width = W / H * 2*nodeRadius;
+    float height =  2*nodeRadius;
+
+    const Vrui::Point& p = gCopy->getNodePosition(node);
+
+    Vrui::Vector fw=Vrui::getForwardDirection();
+    Vrui::Vector up=Vrui::getUpDirection();
+    Vrui::Vector right=Geometry::cross(fw,up);
+    Vrui::Point origin = Vrui::Point::origin;
+
+    Vrui::Vector x(right);
+    x *= width;
+    Vrui::Vector y(up);
+    y *= height;
+
+    glPushMatrix();
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, imageId);
+
+    glTranslatef(p[0], p[1], p[2]);
+    glRotate(invRotation);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0); glVertex(origin - x - y);
+    glTexCoord2f(1, 0); glVertex(origin + x - y);
+    glTexCoord2f(1, 1); glVertex(origin + x + y);
+    glTexCoord2f(0, 1); glVertex(origin - x + y);
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_CULL_FACE);
+
+    glPopMatrix();
+
+    return true;
+}
+
+bool Mycelia::drawShapeNode(int node, MyceliaDataItem* dataItem) const
 {
     const Vrui::Point& p = gCopy->getNodePosition(node);
     const float size = gCopy->getNodeSize(node);
@@ -451,10 +524,29 @@ void Mycelia::drawNode(int node, const MyceliaDataItem* dataItem) const
     glScalef(size, size, size);
     glCallList(dataItem->nodeList);
     glPopMatrix();
+
+    return true;
 }
 
-void Mycelia::drawNodes(const MyceliaDataItem* dataItem) const
+void Mycelia::drawNode(int node, MyceliaDataItem* dataItem) const
 {
+    std::string type = gCopy->getNodeType(node);
+
+    bool success = false;
+    if (type == "image")
+    {
+        success = drawTextureNode(node, dataItem);
+    }
+
+    if (type == "shape" || !success)
+    {
+        success = drawShapeNode(node, dataItem);
+    }
+}
+
+void Mycelia::drawNodes(MyceliaDataItem* dataItem, std::string filter) const
+{
+    std::string node_type;
     foreach(int node, gCopy->getNodes())
     {
         if(!isSelectedComponent(node))
@@ -462,7 +554,11 @@ void Mycelia::drawNodes(const MyceliaDataItem* dataItem) const
             continue;
         }
 
-        drawNode(node, dataItem);
+        node_type = gCopy->getNodeType(node);
+        if (node_type != filter)
+        {
+            drawNode(node, dataItem);
+        }
     }
 }
 
@@ -505,7 +601,7 @@ void Mycelia::drawNodeLabels(const MyceliaDataItem* dataItem) const
     }
 }
 
-void Mycelia::drawShortestPath(const MyceliaDataItem* dataItem) const
+void Mycelia::drawShortestPath(MyceliaDataItem* dataItem) const
 {
     glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getMaterial(MATERIAL_SELECTED));
 
@@ -514,23 +610,24 @@ void Mycelia::drawShortestPath(const MyceliaDataItem* dataItem) const
         if(i == predecessorVector[i]) break;
 
         drawNode(i, dataItem);
-        drawEdge(i, predecessorVector[i], dataItem);
+        drawEdge(i, predecessorVector[i], const_cast<MyceliaDataItem*>(dataItem) );
     }
 }
 
-void Mycelia::drawSpanningTree(const MyceliaDataItem* dataItem) const
+void Mycelia::drawSpanningTree(MyceliaDataItem* dataItem) const
 {
     glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getMaterial(MATERIAL_SELECTED));
 
     for(int i = 0; i < (int)predecessorVector.size(); i++)
     {
         drawNode(i, dataItem);
-        drawEdge(i, predecessorVector[i], dataItem);
+        drawEdge(i, predecessorVector[i], const_cast<MyceliaDataItem*>(dataItem) );
     }
 }
 
 void Mycelia::display(GLContextData& contextData) const
 {
+
     MyceliaDataItem* dataItem = contextData.retrieveDataItem<MyceliaDataItem>(this);
 
     if(showingLogo)
@@ -553,9 +650,17 @@ void Mycelia::display(GLContextData& contextData) const
     {
         glCallList(dataItem->graphList);
 
+        // Camera aligned texture nodes must be redrawn each time.
+        // Rotatable texture nodes will be in the display list.
+        if (gCopy->getTextureNodeMode() == "align")
+        {
+            std::string filter = "shape";
+            drawNodes(dataItem, filter);
+        }
+
         // Haven't figure out what FTGLTextureFont::Render() is changing...
-        // but unless we push GL_TEXTURE_BIT, the rendered text disappears on 
-        // the second call to display() on some platforms 
+        // but unless we push GL_TEXTURE_BIT, the rendered text disappears on
+        // the second call to display() on some platforms
         // (eg Linux on Intel Mac).
         glDisable(GL_LIGHTING);
         glPushAttrib(GL_TEXTURE_BIT);
@@ -597,7 +702,7 @@ void Mycelia::frame()
             // With the dummy navigation tool enabled, the navigation tool
             // tied to the device is blocked.  This other navigation tool
             // was actively updating the navigation transformation whenever
-            // the window containing Vrui moved.  Since we are blocking this 
+            // the window containing Vrui moved.  Since we are blocking this
             // tool, we must manually reset the navigation transformation.
             Vrui::setNavigationTransformation(Vrui::Point::origin, 30);
 

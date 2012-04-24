@@ -21,6 +21,9 @@
 
 #include <mycelia.hpp>
 
+#include <map>
+#include <vector>
+
 class MyceliaDataItem : public GLObject::DataItem
 {
 public:
@@ -32,6 +35,15 @@ public:
     GLuint arrowList;
     GLuint graphList;
     GLuint nodeList;
+
+    // cached images
+    std::map<std::string, size_t> textureIndexMap;
+    std::map<std::string, std::pair<int, int> > textureSizeMap;
+    std::vector<GLuint> textureIds;
+
+    typedef std::pair<int,int> SizePair;
+    typedef std::pair< GLuint, SizePair > TexturePair;
+
     int graphListVersion;
 
     // fonts
@@ -47,9 +59,13 @@ public:
         arrowList = glGenLists(1);
         graphList = glGenLists(1);
         nodeList = glGenLists(1);
+
+        textureIds.resize(1000); // reserve 1000 textures
+        glGenTextures(1000, &textureIds[0]);
+
         graphListVersion = 0;
     }
-    
+
     ~MyceliaDataItem()
     {
         /*delete defaultNodeMaterial;
@@ -60,6 +76,64 @@ public:
         glDeleteLists(arrowList, 1);
         glDeleteLists(graphList, 1);
         glDeleteLists(nodeList, 1);
+        glDeleteTextures(textureIds.size(), &textureIds[0]);
+    }
+
+    TexturePair getTextureId(std::string imagePath)
+    {
+        if (imagePath == "")
+        {
+            return TexturePair(0, SizePair(0,0) );
+        }
+
+        // Search for the path in the cache.
+        std::map<std::string, size_t>::iterator it;
+        it = textureIndexMap.find(imagePath);
+
+        if ( it != textureIndexMap.end() )
+        {
+            // Exists.
+            return TexturePair( textureIds[it->second], textureSizeMap[imagePath] );
+        }
+
+        // open a new image file
+        //
+        Images::RGBImage image;
+        try
+        {
+            image = Images::readImageFile(imagePath.c_str());
+        }
+        catch (...)
+        {
+            std::cerr << "Failed to load image: " << imagePath << std::endl;
+            return TexturePair(0, SizePair(0,0));
+        }
+        SizePair size(image.getWidth(), image.getHeight());
+
+        // grab a pregenerated texture id or generate a new one
+        //
+        unsigned int numCachedTextures = textureIndexMap.size();
+        unsigned int imageIdIndex;
+        if ( numCachedTextures < textureIds.size() )
+        {
+        }
+        else
+        {
+            // make room for another texture id
+            textureIds.push_back(0);
+            glGenTextures(1, &(textureIds[0]) + numCachedTextures);
+        }
+        imageIdIndex = numCachedTextures;
+        textureIndexMap[imagePath] = imageIdIndex;
+        textureSizeMap[imagePath] = size;
+        GLuint imageId = textureIds[imageIdIndex];
+
+        // finally, load the image onto the graphics pipeline
+        glBindTexture(GL_TEXTURE_2D, imageId);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        image.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB);
+        return TexturePair( imageId, size );
     }
 };
 

@@ -37,6 +37,7 @@ Graph& Graph::operator=(const Graph& g)
     edgeMap = g.edgeMap;
 
     materialVector = g.materialVector;
+    textureNodeMode = g.textureNodeMode;
 
     return *this;
 }
@@ -71,6 +72,8 @@ void Graph::init()
     materialVector[MATERIAL_EDGE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.5, 0.5, 0.5));
     materialVector[MATERIAL_SELECTED] = new GLMaterial(GLMaterial::Color(1.0, 0.5, 1.0));
     materialVector[MATERIAL_SELECTED_PREVIOUS] = new GLMaterial(GLMaterial::Color(1.0, 0.0, 1.0));
+
+    textureNodeMode = "align";
 
     version = -1;
     nodeId = -1;
@@ -123,6 +126,11 @@ const GLMaterial* Graph::getMaterial(int materialId)
     return materialVector[materialId];
 }
 
+const std::string& Graph::getTextureNodeMode() const
+{
+    return textureNodeMode;
+}
+
 const int Graph::getVersion() const
 {
     return version;
@@ -153,6 +161,16 @@ void Graph::resetVelocities()
     }
 
     mutex.unlock();
+}
+
+void Graph::setTextureNodeMode(std::string& mode)
+{
+    mutex.lock();
+
+    textureNodeMode = mode;
+
+    mutex.unlock();
+    update();
 }
 
 void Graph::update()
@@ -430,6 +448,11 @@ const int Graph::getNodeCount() const
     return (int)nodes.size();
 }
 
+const std::string& Graph::getNodeImagePath(int node)
+{
+    return nodeMap[node].imagePath;
+}
+
 const Vrui::Point& Graph::getNodePosition(int node)
 {
     return nodeMap[node].position;
@@ -438,6 +461,11 @@ const Vrui::Point& Graph::getNodePosition(int node)
 const float Graph::getNodeSize(int node)
 {
     return nodeMap[node].size;
+}
+
+const std::string& Graph::getNodeType(int node)
+{
+    return nodeMap[node].type;
 }
 
 const Vrui::Point& Graph::getSourceNodePosition(int edge)
@@ -496,6 +524,18 @@ void Graph::setNodeColor(int node, double r, double g, double b, double a)
 
     update();
 }
+
+void Graph::setNodeImagePath(int node, const string& imagePath)
+{
+    mutex.unlock();
+
+    nodeMap[node].imagePath = imagePath;
+
+    mutex.unlock();
+
+    update();
+}
+
 
 void Graph::setNodeLabel(int node, const std::string& label)
 {

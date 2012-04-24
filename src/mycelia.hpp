@@ -57,88 +57,89 @@ private:
     Vrui::Scalar arrowWidth;
     Vrui::Scalar edgeThickness;
     Vrui::Scalar edgeOffset;
-    
+
     // layout and bundling
     FruchtermanReingoldLayout* staticLayout;
     ArfLayout* dynamicLayout;
     GraphLayout* layout;
     EdgeBundler* edgeBundler;
     bool skipLayout;
-    
+
     // gui
     GLMotif::Menu* mainMenu;
     GLMotif::PopupMenu* mainMenuPopup;
-    
+
     // gui -- generators
     GLMotif::RadioBox* generatorRadioBox;
     GLMotif::ToggleButton* barabasiButton;
     GLMotif::ToggleButton* erdosButton;
     GLMotif::ToggleButton* wattsButton;
-    
+
     // gui -- layout
     GLMotif::RadioBox* layoutRadioBox;
     GLMotif::ToggleButton* staticButton;
     GLMotif::ToggleButton* dynamicButton;
-    
+
     // gui -- render options
     GLMotif::ToggleButton* bundleButton;
     GLMotif::ToggleButton* nodeInfoButton;
     GLMotif::ToggleButton* nodeLabelButton;
     GLMotif::ToggleButton* edgeLabelButton;
     GLMotif::ToggleButton* componentButton;
-    
+
     // gui -- algorithms
     GLMotif::ToggleButton* spanningTreeButton;
     GLMotif::ToggleButton* shortestPathButton;
-    
+
     // gui -- python plugins
     GLMotif::ToggleButton* degreeButton;
     GLMotif::ToggleButton* centralityButton;
     GLMotif::ToggleButton* adjacencyButton;
     GLMotif::ToggleButton* lanetButton;
-    
+
     // dialogs
     GLMotif::FileSelectionDialog* fileWindow;
     AttributeWindow* nodeWindow;
     ArfWindow* layoutWindow;
     ImageWindow* imageWindow;
     AttributeWindow* statusWindow;
-    
+
     // algorithms
     std::vector<int> predecessorVector;
-    
+
     // generators
     GraphGenerator* generator;
     BarabasiGenerator* barabasiGenerator;
     ErdosGenerator* erdosGenerator;
     WattsGenerator* wattsGenerator;
-    
+
     // parsers
     ChacoParser* chacoParser;
     DotParser* dotParser;
     GmlParser* gmlParser;
     XmlParser* xmlParser;
-    
+
     // logo
     double lastFrameTime;
     double rotationAngle;
     double rotationSpeed;
     bool showingLogo;
-    
+
     // misc
     int selectedNode;
     int previousNode;
     float coneAngle;
     Vrui::Vector xVector;
     Vrui::Vector zVector;
+
 #ifdef __RPCSERVER__
     RpcServer* server;
 #endif
-    
+
 public:
     Mycelia(int, char**, char**);
     ~Mycelia();
-    
+
     // graph functions
     void buildGraphList(MyceliaDataItem*) const;
     void drawEdge(int, int, const MyceliaDataItem*) const;
@@ -146,26 +147,28 @@ public:
     void drawEdges(const MyceliaDataItem*) const;
     void drawEdgeLabels(const MyceliaDataItem*) const;
     void drawLogo(const MyceliaDataItem*) const;
-    void drawNode(int, const MyceliaDataItem*) const;
-    void drawNodes(const MyceliaDataItem*) const;
+    void drawNode(int, MyceliaDataItem*) const;
+    bool drawShapeNode(int, MyceliaDataItem*) const;
+    bool drawTextureNode(int, MyceliaDataItem*) const;
+    void drawNodes(MyceliaDataItem*, std::string filter="none") const;
     void drawNodeLabels(const MyceliaDataItem*) const;
-    void drawShortestPath(const MyceliaDataItem*) const;
-    void drawSpanningTree(const MyceliaDataItem*) const;
+    void drawShortestPath(MyceliaDataItem*) const;
+    void drawSpanningTree(MyceliaDataItem*) const;
     void fileOpen(std::string &filename);
     bool isSelectedComponent(int) const;
-    
+
     // layout functions
     void resumeLayout() const;
     void setLayoutType(int);
     void setSkipLayout(bool);
     void startLayout() const;
     void stopLayout() const;
-    
+
     // vrui functions
     void display(GLContextData&) const;
     void frame();
     void initContext(GLContextData&) const;
-    
+
     // callbacks
     void bundleCallback(GLMotif::ToggleButton::ValueChangedCallbackData*);
     void clearCallback(Misc::CallbackData*);
@@ -183,7 +186,7 @@ public:
     void shortestPathCallback(GLMotif::ToggleButton::ValueChangedCallbackData*);
     void spanningTreeCallback(GLMotif::ToggleButton::ValueChangedCallbackData*);
     void writeGraphCallback(Misc::CallbackData*);
-    
+
     // node selection
     void clearSelections();
     int getPreviousNode() const;
@@ -192,11 +195,11 @@ public:
     int selectNode(const Vrui::Point&) const;
     int selectNode(const Vrui::Ray&) const;
     int selectNode(Vrui::InputDevice*) const;
-    
+
     // arrowhead
     Vrui::Scalar getArrowWidth() const;
     Vrui::Scalar getArrowHeight() const;
-    
+
     // other
     Graph* g; // wrap this eventually
     Graph* gCopy;

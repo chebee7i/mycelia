@@ -48,7 +48,7 @@ public:
     std::string type;
 
     // These are used if the type is "image".
-    std::string imgPath;
+    std::string imagePath;
     int imageWidth;
     int imageHeight;
 
@@ -97,7 +97,11 @@ private:
     std::set<int> edges;
     int edgeId;
 
+
+    /** This needs to be moved to dataItem, or Graph should derive from GLObject */
     std::vector<GLMaterial*> materialVector;
+
+    std::string textureNodeMode;
 
     int version;
     Threads::Mutex mutex;
@@ -111,10 +115,12 @@ public:
     void clear();
     void init();
     const std::pair<Vrui::Point, Vrui::Scalar> locate();
-    const int getVersion() const;
     const GLMaterial* getMaterial(int);
+    const std::string& getTextureNodeMode() const;
+    const int getVersion() const;
     void randomizePositions(int);
     void resetVelocities();
+    void setTextureNodeMode(std::string&);
     void update();
     void write(const char*);
     void lock() { mutex.lock(); }
@@ -152,13 +158,16 @@ public:
     const GLMaterial* getNodeMaterial(int);
     const Vrui::Point& getNodePosition(int);
     const Vrui::Vector& getNodeVelocity(int);
+    const std::string& getNodeImagePath(int);
     const float getNodeSize(int);
+    const std::string& getNodeType(int);
     const Vrui::Point& getSourceNodePosition(int);
     const Vrui::Point& getTargetNodePosition(int);
     const bool isValidNode(int) const;
     void setNodeAttribute(int, std::string&, std::string&);
     void setNodeColor(int, int, int, int, int = 255.0);
     void setNodeColor(int, double, double, double, double = 1.0);
+    void setNodeImagePath(int, const std::string&);
     void setNodeLabel(int, const std::string&);
     void setNodePosition(int, const Vrui::Point&);
     void setNodeType(int, const std::string&);

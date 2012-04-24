@@ -79,6 +79,28 @@ public:
     }
 };
 
+class AddNodeAt : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    AddNodeAt(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        double x = params.getDouble(0);
+        double y = params.getDouble(1);
+        double z = params.getDouble(2);
+        params.verifyEnd(3);
+
+        Vrui::Point p(x,y,z);
+        app->g->addNode(p);
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
+
 class Center : public xmlrpc_c::method
 {
     Mycelia* app;
@@ -134,7 +156,7 @@ public:
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
         app->g->update();
-    
+
         *retval = xmlrpc_c::value_int(0);
     }
 };
@@ -373,6 +395,43 @@ public:
 
         app->g->setNodeType(node, type);
 
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
+
+class SetNodeImagePath : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    SetNodeImagePath(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        int node = params.getInt(0);
+        std::string image_path = params.getString(1);
+        params.verifyEnd(2);
+
+        app->g->setNodeImagePath(node, image_path);
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
+class SetTextureNodeMode : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    SetTextureNodeMode(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        std::string mode = params.getString(0);
+        params.verifyEnd(1);
+
+        app->g->setTextureNodeMode(mode);
         *retval = xmlrpc_c::value_int(0);
     }
 };
