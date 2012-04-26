@@ -146,6 +146,21 @@ public:
     }
 };
 
+class ClearVelocities : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    ClearVelocities(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        app->g->clearVelocities();
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
 class Draw : public xmlrpc_c::method
 {
     Mycelia* app;
@@ -224,6 +239,24 @@ public:
         params.verifyEnd(1);
 
         app->fileOpen(filepath);
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
+class RandomizePositions : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    RandomizePositions(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        double radius = params.getDouble(0);
+        params.verifyEnd(1);
+
+        app->g->randomizePositions(radius);
 
         *retval = xmlrpc_c::value_int(0);
     }

@@ -171,19 +171,21 @@ const int Graph::getVersion() const
     return version;
 }
 
-void Graph::randomizePositions(int radius)
+void Graph::randomizePositions(Vrui::Scalar radius)
 {
     mutex.lock();
 
+    Vrui::Scalar x,y,z;
     foreach(int node, nodes)
     {
-        float x = rand() % (2 * radius) - radius;
-        float y = rand() % (2 * radius) - radius;
-        float z = rand() % (2 * radius) - radius;
+        x = radius * (2 * VruiHelp::randomFloat() - 1);
+        y = radius * (2 * VruiHelp::randomFloat() - 1);
+        z = radius * (2 * VruiHelp::randomFloat() - 1);
         nodeMap[node].position = Vrui::Point(x, y, z);
     }
 
     mutex.unlock();
+    update();
 }
 
 void Graph::setTextureNodeMode(std::string& mode)
@@ -519,9 +521,10 @@ const bool Graph::isValidNode(int node) const
 
 void Graph::moveNodes(const Vrui::Vector &offset)
 {
-    // Note: we don't lock.  The layout algorithm works with a copy.
+    // Note: we don't lock.  The drawing methods work with a copy.
     // And so what if the layout algorithm works with the old position
-    // for one more time step.  It will get the new one at the update.
+    // for one more time step, assuming the main or RPC thread modifies it.
+    // It will get the new one at the update. Hopefully this causes no issues.
     foreach(int node, nodes)
     {
         nodeMap[node].position += offset;

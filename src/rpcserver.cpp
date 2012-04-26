@@ -34,6 +34,7 @@ void* RpcServer::run()
     r.addMethod("center", new Center(app));
     r.addMethod("clear", new Clear(app));
     r.addMethod("clear_edges", new ClearEdges(app));
+    r.addMethod("clear_velocities", new ClearVelocities(app));
     r.addMethod("delete_edge", new DeleteEdge(app));
     r.addMethod("delete_node", new DeleteNode(app));
     r.addMethod("draw", new Draw(app));
@@ -42,6 +43,7 @@ void* RpcServer::run()
     r.addMethod("add_node", new AddNode(app));
     r.addMethod("add_node_at", new AddNodeAt(app));
     r.addMethod("open_file", new OpenFile(app));
+    r.addMethod("randomize_positions", new RandomizePositions(app));
     r.addMethod("set_callback", new SetCallback(app, this));
     r.addMethod("set_edge_label", new SetEdgeLabel(app));
     r.addMethod("set_edge_weight", new SetEdgeWeight(app));

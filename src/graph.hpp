@@ -107,7 +107,6 @@ private:
 
     int version;
     Threads::Mutex mutex;
-    unsigned numLocks;
     
     const std::list<int> empty; // returned by getEdges when none exist
 
@@ -123,7 +122,7 @@ public:
     const GLMaterial* getMaterial(int);
     const std::string& getTextureNodeMode() const;
     const int getVersion() const;
-    void randomizePositions(int);
+    void randomizePositions(Vrui::Scalar);
 
     void setTextureNodeMode(std::string&);
     void update();
