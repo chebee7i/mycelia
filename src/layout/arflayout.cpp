@@ -83,8 +83,12 @@ void ArfLayout::layout()
     layoutThread->start(this, &ArfLayout::layoutThreadMethod);
 }
 
-// if removing nodes/edges is enabled (ex: rpcserver), layoutStep needs to be
-// locked
+// If removing nodes/edges is enabled (ex: rpcserver), layoutStep needs to be
+// locked. note, while not ideal, it isn't horrible if we do not lock if
+// only adding nodes/edges is enabled.  In this case, the worst that can
+// happen is that the layout thread using an "old" value of the position
+// when computing its new position. It still obtains a lock when updating
+// the position, so that should be fine.
 void* ArfLayout::layoutThreadMethod()
 {
     while(!stopped)

@@ -777,12 +777,22 @@ void Mycelia::setLayoutType(int type)
         bundleButton->setToggle(false);
 
         layoutRadioBox->setSelectedToggle(1);
+        if (layout != dynamicLayout)
+        {
+            // Then we are switching layouts!
+            stopLayout();
+        }
         layout = dynamicLayout;
         layoutWindow->show();
     }
     else if(type == LAYOUT_STATIC)
     {
         layoutRadioBox->setSelectedToggle(0);
+        if (layout != staticLayout)
+        {
+            // Then we are switching layouts!
+            stopLayout();
+        }
         layout = staticLayout;
         layoutWindow->hide();
     }
@@ -795,7 +805,11 @@ void Mycelia::setSkipLayout(bool skipLayout)
 
 void Mycelia::startLayout() const
 {
-    layout->layout();
+    // Make sure we aren't starting the thread a second time.
+    if (layout->isStopped())
+    {
+        layout->layout();
+    }
 }
 
 void Mycelia::stopLayout() const
@@ -1070,6 +1084,9 @@ void Mycelia::resetLayout(bool watch)
     // In order to avoid a flicker during layout...let's recenter.
     if (watch)
     {
+        // Note, this will reset the dynamic layout since it calls
+        // resumeLayout(). Fortunately, the call to startLayout() (below)
+        // is smart enough to handle this.
         resetNavigationCallback(0);
     }
 
@@ -1136,7 +1153,7 @@ void Mycelia::resetNavigationCallback(Misc::CallbackData* cbData)
     Vrui::setNavigationTransformation(center, radius);
 
     g->update();
-    resumeLayout();
+    resumeLayout(); // for dynamic layout
 }
 
 void Mycelia::shortestPathCallback(GLMotif::ToggleButton::ValueChangedCallbackData* cbData)

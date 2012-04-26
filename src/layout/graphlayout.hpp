@@ -47,6 +47,11 @@ public:
         }
     }
     
+    bool isStopped()
+    {
+        return stopped;
+    }
+
     virtual bool isDynamic()
     {
         return dynamic;

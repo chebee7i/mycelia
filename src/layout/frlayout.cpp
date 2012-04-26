@@ -40,7 +40,9 @@ void* FruchtermanReingoldLayout::layoutThreadMethod()
         layoutStep();
     }
     
+    stopped = true;
     application->resetNavigationCallback(0);
+
     return 0;
 }
 
