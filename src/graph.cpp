@@ -173,6 +173,11 @@ const int Graph::getVersion() const
 
 void Graph::randomizePositions(Vrui::Scalar radius)
 {
+    if (radius < 0)
+    {
+        radius = lastMaxDistance / 2;
+    }
+
     mutex.lock();
 
     Vrui::Scalar x,y,z;
@@ -529,6 +534,7 @@ void Graph::moveNodes(const Vrui::Vector &offset)
     {
         nodeMap[node].position += offset;
     }
+    lastCenter += offset;
 
     update();
 }
