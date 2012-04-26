@@ -27,7 +27,6 @@ FruchtermanReingoldLayout::FruchtermanReingoldLayout(Mycelia* application)
 
 void FruchtermanReingoldLayout::layout()
 {
-    stopped = false;
     layoutThread->start(this, &FruchtermanReingoldLayout::layoutThreadMethod);
 }
 

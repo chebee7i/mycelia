@@ -79,7 +79,6 @@ inline double ArfLayout::getSpringLength(int edgeCount) const
 
 void ArfLayout::layout()
 {
-    stopped = false;
     layoutThread->start(this, &ArfLayout::layoutThreadMethod);
 }
 

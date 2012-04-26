@@ -85,7 +85,7 @@ void ArfWindow::sliderCallback(GLMotif::Slider::ValueChangedCallbackData* cbData
     else if(cbData->slider == betaSlider)
     {
         layout->beta = f;
-        betaField->setValue(1.0 + f);
+        betaField->setValue(f);
     }
     else if(cbData->slider == stronglyConnectedConstantSlider)
     {

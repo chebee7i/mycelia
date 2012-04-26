@@ -805,11 +805,7 @@ void Mycelia::setSkipLayout(bool skipLayout)
 
 void Mycelia::startLayout() const
 {
-    // Make sure we aren't starting the thread a second time.
-    if (layout->isStopped())
-    {
-        layout->layout();
-    }
+    layout->start();
 }
 
 void Mycelia::stopLayout() const
@@ -1138,6 +1134,7 @@ void Mycelia::resetLayout(bool watch)
 
 void Mycelia::resetNavigationCallback(Misc::CallbackData* cbData)
 {
+    bool layoutWasRunning = !layout->isStopped();
     stopLayout();
 
     pair<Vrui::Point, Vrui::Scalar> p = g->locate();
@@ -1153,7 +1150,10 @@ void Mycelia::resetNavigationCallback(Misc::CallbackData* cbData)
     Vrui::setNavigationTransformation(center, radius);
 
     g->update();
-    resumeLayout(); // for dynamic layout
+    if (layoutWasRunning)
+    {
+        resumeLayout(); // for dynamic layout
+    }
 }
 
 void Mycelia::shortestPathCallback(GLMotif::ToggleButton::ValueChangedCallbackData* cbData)

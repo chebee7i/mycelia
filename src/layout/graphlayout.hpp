@@ -37,6 +37,16 @@ public:
         layoutThread = new Threads::Thread();
     }
     
+    void start()
+    {
+        if (stopped)
+        {
+            stopped = false;
+            layout();
+        }
+        // otherwise: do not start the thread again
+    }
+
     void stop()
     {
         stopped = true;
