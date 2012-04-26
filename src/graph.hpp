@@ -103,7 +103,7 @@ private:
     std::string textureNodeMode;
 
     Vrui::Point lastCenter;
-    Vrui::Scalar lastRadius;
+    Vrui::Scalar lastMaxDistance;
 
     int version;
     Threads::Mutex mutex;

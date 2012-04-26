@@ -95,10 +95,18 @@ void Graph::init()
     lastCenter[0] = 0;
     lastCenter[1] = 0;
     lastCenter[2] = 0;
-    if (lastRadius == 0)
+
+    /** We will change the lastMaxDistance for two reasons:
+
+          1) it has never been set
+          2) it is huge due to nodes escaping to infinity
+
+    */
+
+    // The lastMaxDistance is used to populate initial nodes.
+    if (lastMaxDistance == 0 || lastMaxDistance > 1e15)
     {
-        // only change the radius if it has never been set
-        lastRadius = 30;
+        lastMaxDistance = 30;
     }
 }
 
@@ -129,6 +137,7 @@ const pair<Vrui::Point, Vrui::Scalar> Graph::locate()
         }
 
         center += (nodeMap[source].position - center) * (1.0 / counted);
+
         counted++;
     }
 
@@ -137,7 +146,7 @@ const pair<Vrui::Point, Vrui::Scalar> Graph::locate()
     if(maxDistance == 0) maxDistance = 30;
     
     lastCenter = center;
-    lastRadius = maxDistance;
+    lastMaxDistance = maxDistance;
     
     return pair<Vrui::Point, Vrui::Scalar>(center, maxDistance);
 }
@@ -359,10 +368,13 @@ const int Graph::addNode()
     mutex.lock();
 
     Node n;
-    Vrui::Scalar scale = 0.7 * lastRadius;
-    n.position = Vrui::Point(scale * (2 * VruiHelp::randomFloat() - 1), 
-                             scale * (2 * VruiHelp::randomFloat() - 1), 
-                             scale * (2 * VruiHelp::randomFloat() - 1) );
+
+    Vrui::Scalar scale = lastMaxDistance / 2; // effective radius
+
+    // New point should be around previous center of graph
+    n.position = Vrui::Point(lastCenter[0] + scale * (2 * VruiHelp::randomFloat() - 1), 
+                             lastCenter[1] + scale * (2 * VruiHelp::randomFloat() - 1), 
+                             lastCenter[2] + scale * (2 * VruiHelp::randomFloat() - 1) );
 
     nodeId++;
     nodes.insert(nodeId);
