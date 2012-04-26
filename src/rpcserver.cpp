@@ -31,9 +31,9 @@ void* RpcServer::run()
 {
     xmlrpc_c::registry r;
 
+    r.addMethod("center", new Center(app));
     r.addMethod("clear", new Clear(app));
     r.addMethod("clear_edges", new ClearEdges(app));
-    r.addMethod("center", new Center(app));
     r.addMethod("delete_edge", new DeleteEdge(app));
     r.addMethod("delete_node", new DeleteNode(app));
     r.addMethod("draw", new Draw(app));

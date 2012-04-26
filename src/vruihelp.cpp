@@ -112,7 +112,8 @@ string fileToString(string& filename)
 
 float randomFloat()
 {
-    return rand() / (float(RAND_MAX) + 1);
+    float x = rand() / (float(RAND_MAX) + 1);
+    return x;
 }
 
 void show(GLMotif::Widget* w)

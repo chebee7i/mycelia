@@ -56,6 +56,18 @@ void Graph::clear()
     application->clearSelections();
 }
 
+void Graph::clearVelocities()
+{
+    mutex.lock();
+
+    foreach(int node, nodes)
+    {
+        nodeMap[node].velocity = Vrui::Vector(0, 0, 0);
+    }
+
+    mutex.unlock();
+}
+
 void Graph::init()
 {
     nodes.clear();
@@ -66,6 +78,7 @@ void Graph::init()
     edgeMap.clear();
     edgeMap.rehash(1000);
 
+    // TODO: Move back to dataitem.cpp
     materialVector.clear();
     materialVector.resize(4);
     materialVector[MATERIAL_NODE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.0, 1.0, 1.0));
@@ -78,6 +91,15 @@ void Graph::init()
     version = -1;
     nodeId = -1;
     edgeId = -1;
+    
+    lastCenter[0] = 0;
+    lastCenter[1] = 0;
+    lastCenter[2] = 0;
+    if (lastRadius == 0)
+    {
+        // only change the radius if it has never been set
+        lastRadius = 30;
+    }
 }
 
 const pair<Vrui::Point, Vrui::Scalar> Graph::locate()
@@ -113,6 +135,10 @@ const pair<Vrui::Point, Vrui::Scalar> Graph::locate()
     mutex.unlock();
 
     if(maxDistance == 0) maxDistance = 30;
+    
+    lastCenter = center;
+    lastRadius = maxDistance;
+    
     return pair<Vrui::Point, Vrui::Scalar>(center, maxDistance);
 }
 
@@ -146,18 +172,6 @@ void Graph::randomizePositions(int radius)
         float y = rand() % (2 * radius) - radius;
         float z = rand() % (2 * radius) - radius;
         nodeMap[node].position = Vrui::Point(x, y, z);
-    }
-
-    mutex.unlock();
-}
-
-void Graph::resetVelocities()
-{
-    mutex.lock();
-
-    foreach(int node, nodes)
-    {
-        nodeMap[node].velocity = Vrui::Vector(0, 0, 0);
     }
 
     mutex.unlock();
@@ -345,7 +359,10 @@ const int Graph::addNode()
     mutex.lock();
 
     Node n;
-    n.position = Vrui::Point(VruiHelp::randomFloat(), VruiHelp::randomFloat(), VruiHelp::randomFloat());
+    Vrui::Scalar scale = 0.7 * lastRadius;
+    n.position = Vrui::Point(scale * (2 * VruiHelp::randomFloat() - 1), 
+                             scale * (2 * VruiHelp::randomFloat() - 1), 
+                             scale * (2 * VruiHelp::randomFloat() - 1) );
 
     nodeId++;
     nodes.insert(nodeId);

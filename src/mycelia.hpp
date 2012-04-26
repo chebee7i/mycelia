@@ -158,6 +158,7 @@ public:
     bool isSelectedComponent(int) const;
 
     // layout functions
+    void resetLayout(bool watch=true);
     void resumeLayout() const;
     void setLayoutType(int);
     void setSkipLayout(bool);

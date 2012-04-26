@@ -97,14 +97,18 @@ private:
     std::set<int> edges;
     int edgeId;
 
-
     /** This needs to be moved to dataItem, or Graph should derive from GLObject */
     std::vector<GLMaterial*> materialVector;
 
     std::string textureNodeMode;
 
+    Vrui::Point lastCenter;
+    Vrui::Scalar lastRadius;
+
     int version;
     Threads::Mutex mutex;
+    unsigned numLocks;
+    
     const std::list<int> empty; // returned by getEdges when none exist
 
 public:
@@ -113,13 +117,14 @@ public:
 
     // general
     void clear();
+    void clearVelocities();
     void init();
     const std::pair<Vrui::Point, Vrui::Scalar> locate();
     const GLMaterial* getMaterial(int);
     const std::string& getTextureNodeMode() const;
     const int getVersion() const;
     void randomizePositions(int);
-    void resetVelocities();
+
     void setTextureNodeMode(std::string&);
     void update();
     void write(const char*);

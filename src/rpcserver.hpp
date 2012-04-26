@@ -203,7 +203,9 @@ public:
 
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
-        app->resetLayoutCallback(0);
+        bool watch = params.getBoolean(0);
+        params.verifyEnd(1);
+        app->resetLayout(watch);
 
         *retval = xmlrpc_c::value_int(0);
     }

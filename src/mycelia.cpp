@@ -486,6 +486,7 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     glDisable(GL_CULL_FACE);
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
+
     glBindTexture(GL_TEXTURE_2D, imageId);
 
     glTranslatef(p[0], p[1], p[2]);
@@ -1036,6 +1037,11 @@ void Mycelia::pythonCallback(GLMotif::RadioBox::ValueChangedCallbackData* cbData
 
 void Mycelia::resetLayoutCallback(Misc::CallbackData* cbData)
 {
+    resetLayout();
+}
+
+void Mycelia::resetLayout(bool watch)
+{
     stopLayout();
     bundleButton->setToggle(false);
 
@@ -1059,7 +1065,13 @@ void Mycelia::resetLayoutCallback(Misc::CallbackData* cbData)
 
     // reset layout state
     g->randomizePositions(100);
-    g->resetVelocities();
+    g->clearVelocities();
+    
+    // In order to avoid a flicker during layout...let's recenter.
+    if (watch)
+    {
+        resetNavigationCallback(0);
+    }
 
 #ifndef __CUDA__
     startLayout();
