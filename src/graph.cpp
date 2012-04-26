@@ -519,10 +519,15 @@ const bool Graph::isValidNode(int node) const
 
 void Graph::moveNodes(const Vrui::Vector &offset)
 {
+    // Note: we don't lock.  The layout algorithm works with a copy.
+    // And so what if the layout algorithm works with the old position
+    // for one more time step.  It will get the new one at the update.
     foreach(int node, nodes)
     {
         nodeMap[node].position += offset;
     }
+
+    update();
 }
 
 void Graph::moveNodes(const Vrui::Point &offset)
@@ -571,11 +576,7 @@ void Graph::setNodeColor(int node, double r, double g, double b, double a)
 
 void Graph::setNodeImagePath(int node, const string& imagePath)
 {
-    mutex.unlock();
-
     nodeMap[node].imagePath = imagePath;
-
-    mutex.unlock();
 
     update();
 }
