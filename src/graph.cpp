@@ -517,6 +517,21 @@ const bool Graph::isValidNode(int node) const
     return nodeMap.find(node) != nodeMap.end();
 }
 
+void Graph::moveNodes(const Vrui::Vector &offset)
+{
+    foreach(int node, nodes)
+    {
+        nodeMap[node].position += offset;
+    }
+}
+
+void Graph::moveNodes(const Vrui::Point &offset)
+{
+    Vrui::Vector v(offset[0], offset[1], offset[2]);
+    moveNodes(v);
+}
+
+
 void Graph::setNodeAttribute(int node, string& key, string& value)
 {
     nodeMap[node].attributes.push_back(pair<string, string>(key, value));

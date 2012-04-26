@@ -169,6 +169,8 @@ public:
     const Vrui::Point& getSourceNodePosition(int);
     const Vrui::Point& getTargetNodePosition(int);
     const bool isValidNode(int) const;
+    void moveNodes(const Vrui::Vector&);
+    void moveNodes(const Vrui::Point&);
     void setNodeAttribute(int, std::string&, std::string&);
     void setNodeColor(int, int, int, int, int = 255.0);
     void setNodeColor(int, double, double, double, double = 1.0);

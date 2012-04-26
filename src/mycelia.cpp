@@ -1140,6 +1140,8 @@ void Mycelia::resetNavigationCallback(Misc::CallbackData* cbData)
     pair<Vrui::Point, Vrui::Scalar> p = g->locate();
     Vrui::Point& center = p.first;
     Vrui::Scalar& radius = p.second;
+    Vrui::Point shift(-center[0], -center[1], -center[2]);
+    g->moveNodes(shift);
 
     nodeRadius = radius / 80;
     arrowHeight = nodeRadius / 2;
@@ -1147,7 +1149,7 @@ void Mycelia::resetNavigationCallback(Misc::CallbackData* cbData)
     edgeThickness = nodeRadius / 7;
     edgeOffset = nodeRadius + arrowHeight;
 
-    Vrui::setNavigationTransformation(center, radius);
+    Vrui::setNavigationTransformation(Vrui::Point::origin, radius);
 
     g->update();
     if (layoutWasRunning)
