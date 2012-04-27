@@ -49,13 +49,7 @@ void EdgeBundler::allocateSegments()
     }
 }
 
-void EdgeBundler::layout()
-{
-    stopped = false;
-    layoutThread->start(this, &EdgeBundler::layoutThreadMethod);
-}
-
-void* EdgeBundler::layoutThreadMethod()
+void* EdgeBundler::layout()
 {
     cycle = 0;
     segments = SUBDIVISIONS_0;
@@ -76,7 +70,6 @@ void* EdgeBundler::layoutThreadMethod()
         stepsize /= 2.0;
         iterations *= 0.66;
     }
-    
     return 0;
 }
 

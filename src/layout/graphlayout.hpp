@@ -30,7 +30,9 @@ protected:
     Threads::Thread* layoutThread;
     bool stopped;
     bool dynamic;
-    
+
+    virtual void* layout() = 0;
+
 public:
     GraphLayout(Mycelia* application) : application(application), dynamic(false)
     {
@@ -42,7 +44,7 @@ public:
         if (stopped)
         {
             stopped = false;
-            layout();
+            layoutThread->start(this, &GraphLayout::layout);
         }
         // otherwise: do not start the thread again
     }
@@ -66,9 +68,6 @@ public:
     {
         return dynamic;
     }
-    
-    virtual void layout() = 0;
-    virtual void layoutStep() = 0;
 };
 
 #endif

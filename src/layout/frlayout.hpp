@@ -38,9 +38,9 @@ private:
 public:
     FruchtermanReingoldLayout(Mycelia*);
     
-    void layout();
-    void layoutStep();
-    void* layoutThreadMethod();
+protected:
+    virtual void* layout();
+    virtual void layoutStep();
 };
 
 #endif

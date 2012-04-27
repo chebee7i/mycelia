@@ -825,7 +825,7 @@ void Mycelia::bundleCallback(GLMotif::ToggleButton::ValueChangedCallbackData* cb
     if(cbData->set)
     {
         stopLayout();
-        edgeBundler->layout();
+        edgeBundler->start();
     }
     else
     {
@@ -1082,11 +1082,13 @@ void Mycelia::resetLayout(bool watch)
     {
         // Note, this will reset the dynamic layout since it calls
         // resumeLayout(). Fortunately, the call to startLayout() (below)
-        // is smart enough to handle this.
+        // is smart enough to handle this and not restart the thread.
         resetNavigationCallback(0);
     }
 
 #ifndef __CUDA__
+    // Some layouts will automatically call resetNavigationCallback once
+    // they have finished laying out the graph.
     startLayout();
 #else
     // positions

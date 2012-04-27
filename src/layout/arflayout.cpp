@@ -77,18 +77,9 @@ inline double ArfLayout::getSpringLength(int edgeCount) const
     }
 }
 
-void ArfLayout::layout()
-{
-    layoutThread->start(this, &ArfLayout::layoutThreadMethod);
-}
-
 // If removing nodes/edges is enabled (ex: rpcserver), layoutStep needs to be
-// locked. note, while not ideal, it isn't horrible if we do not lock if
-// only adding nodes/edges is enabled.  In this case, the worst that can
-// happen is that the layout thread using an "old" value of the position
-// when computing its new position. It still obtains a lock when updating
-// the position, so that should be fine.
-void* ArfLayout::layoutThreadMethod()
+// locked.
+void* ArfLayout::layout()
 {
     while(!stopped)
     {
@@ -141,7 +132,7 @@ void ArfLayout::layoutStep()
             
             double constB = layoutRadius * sqrt(nodeCount) / pow(mag, 1 + beta);
             Vrui::Vector repulsionForce = constB * v;
-            
+
             velocityVector[source] = VruiHelp::rk4(velocityVector[source], (dampingForce + springForce + repulsionForce) / mass, deltaTime);
             positionVector[source] = VruiHelp::rk4(positionVector[source], velocity, deltaTime);
         }

@@ -48,9 +48,10 @@ public:
     
     double getSpringConstant(int) const;
     double getSpringLength(int) const;
-    void layout();
-    void layoutStep();
-    void* layoutThreadMethod();
+
+protected:
+    virtual void* layout();
+    virtual void layoutStep();
 };
 
 #endif

@@ -25,12 +25,7 @@ FruchtermanReingoldLayout::FruchtermanReingoldLayout(Mycelia* application)
 {
 }
 
-void FruchtermanReingoldLayout::layout()
-{
-    layoutThread->start(this, &FruchtermanReingoldLayout::layoutThreadMethod);
-}
-
-void* FruchtermanReingoldLayout::layoutThreadMethod()
+void* FruchtermanReingoldLayout::layout()
 {
     springForceConstant = Math::pow(VOLUME / application->g->getNodeCount(), 1.0 / 3.0);
     
