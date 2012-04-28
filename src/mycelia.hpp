@@ -164,6 +164,7 @@ public:
     void setSkipLayout(bool);
     void startLayout() const;
     void stopLayout() const;
+    bool layoutIsStopped() const;
 
     // vrui functions
     void display(GLContextData&) const;

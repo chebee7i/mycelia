@@ -513,9 +513,10 @@ public:
 
     void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
     {
+        bool isStopped = app->layoutIsStopped();
         app->stopLayout();
 
-        *retval = xmlrpc_c::value_int(0);
+        *retval = xmlrpc_c::value_boolean(isStopped);
     }
 };
 

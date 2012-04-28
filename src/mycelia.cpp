@@ -70,6 +70,7 @@ std::string getResourceDir()
     }
     catch (IO::Directory::OpenError e)
     {
+        // This means you must run mycelia must exist in the CWD.
         dir = ".";
     }
     return dir;
@@ -767,6 +768,11 @@ void Mycelia::resumeLayout() const
     {
         startLayout();
     }
+}
+
+bool Mycelia::layoutIsStopped() const
+{
+    return layout->isStopped();
 }
 
 void Mycelia::setLayoutType(int type)
