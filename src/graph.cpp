@@ -151,7 +151,7 @@ const pair<Vrui::Point, Vrui::Scalar> Graph::locate()
     return pair<Vrui::Point, Vrui::Scalar>(center, maxDistance);
 }
 
-const GLMaterial* Graph::getMaterial(int materialId)
+const GLMaterial* Graph::getNodeMaterialFromId(int materialId)
 {
     if(materialId < 0 || materialId >= (int)materialVector.size())
     {
@@ -471,7 +471,7 @@ const string& Graph::getNodeLabel(int node)
 
 const GLMaterial* Graph::getNodeMaterial(int node)
 {
-    return getMaterial(nodeMap[node].material);
+    return getNodeMaterialFromId(nodeMap[node].material);
 }
 
 const set<int>& Graph::getNodes() const

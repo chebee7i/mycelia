@@ -78,10 +78,12 @@ public:
     int source;
     int target;
     std::string label;
+    int material;
     float weight;
+    
 
-    Edge() : source(0), target(0) { weight = 1; }
-    Edge(int s, int t) : source(s), target(t) { weight = 1; }
+    Edge() : source(0), target(0), material(0), weight(1) {}
+    Edge(int s, int t) : source(s), target(t), weight(1)  {}
 };
 
 class Graph
@@ -119,7 +121,7 @@ public:
     void clearVelocities();
     void init();
     const std::pair<Vrui::Point, Vrui::Scalar> locate();
-    const GLMaterial* getMaterial(int);
+    const GLMaterial* getNodeMaterialFromId(int);
     const std::string& getTextureNodeMode() const;
     const int getVersion() const;
     void randomizePositions(Vrui::Scalar);

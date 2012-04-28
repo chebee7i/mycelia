@@ -353,7 +353,7 @@ void Mycelia::drawEdges(const MyceliaDataItem* dataItem) const
     this saves lots of time for very dense graphs.
     todo: the current approach to tracking drawn edges is a quick hack.
     */
-    glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getMaterial(MATERIAL_EDGE_DEFAULT));
+    glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_EDGE_DEFAULT));
     bool drawn[1000][1000] = {{false}};
 
     foreach(int edge, gCopy->getEdges())
@@ -515,9 +515,9 @@ bool Mycelia::drawShapeNode(int node, MyceliaDataItem* dataItem) const
     const float size = gCopy->getNodeSize(node);
 
     if(node == selectedNode)
-        glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getMaterial(MATERIAL_SELECTED));
+        glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED));
     else if(node == previousNode)
-        glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getMaterial(MATERIAL_SELECTED_PREVIOUS));
+        glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED_PREVIOUS));
     else
         glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterial(node));
 
@@ -605,7 +605,7 @@ void Mycelia::drawNodeLabels(const MyceliaDataItem* dataItem) const
 
 void Mycelia::drawShortestPath(MyceliaDataItem* dataItem) const
 {
-    glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getMaterial(MATERIAL_SELECTED));
+    glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED));
 
     for(int i = selectedNode; i != previousNode; i = predecessorVector[i])
     {
@@ -618,7 +618,7 @@ void Mycelia::drawShortestPath(MyceliaDataItem* dataItem) const
 
 void Mycelia::drawSpanningTree(MyceliaDataItem* dataItem) const
 {
-    glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getMaterial(MATERIAL_SELECTED));
+    glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED));
 
     for(int i = 0; i < (int)predecessorVector.size(); i++)
     {
