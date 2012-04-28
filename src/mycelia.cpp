@@ -764,6 +764,11 @@ void Mycelia::setStatus(const char* status) const
  */
 void Mycelia::resumeLayout() const
 {
+    // Resume only if dynamic and not skipping.
+    
+    // The reason we do not resume if the layout is static is because starting
+    // a static layout is equivalent to running resetLayout, which is not
+    // always desirable.
     if(layout->isDynamic() && !skipLayout)
     {
         startLayout();
@@ -1142,7 +1147,7 @@ void Mycelia::resetLayout(bool watch)
 
 void Mycelia::resetNavigationCallback(Misc::CallbackData* cbData)
 {
-    bool layoutWasRunning = !layout->isStopped();
+    bool layoutWasRunning = !(layout->isStopped());
     stopLayout();
 
     pair<Vrui::Point, Vrui::Scalar> p = g->locate();

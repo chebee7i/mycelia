@@ -105,6 +105,9 @@ class MyceliaServer:
     def stop_layout(self):
         self.server.stop_layout()
         
+    def resume_layout(self):
+        self.server.resume_layout()
+        
     def set_layout_type(self, layout):
         if layout not in self.layout_types:
             raise Exception("Layout should be 'static' or 'dynamic'.")
@@ -113,10 +116,13 @@ class MyceliaServer:
             
     def add_node_at(self, n, pos, attr_dict=None, **attr):
         nx.Graph.add_node(self,n,attr_dict=attr_dict,**attr)
+        
+        self.stop_layout()
         myid = self.server.add_node_at(float(pos[0]),
                                        float(pos[1]),
-                                       float(pos[2]))        
+                                       float(pos[2]))
         self.node[n][self.myid] = myid
+        self.resume_layout()
                 
     def set_texture_node_mode(self, mode):
         if mode not in self.texture_modes:
@@ -138,7 +144,7 @@ class Graph(nx.Graph, MyceliaServer):
         nx.Graph.clear(self)
         self.server.clear()        
         
-    def add_node(self, n, attr_dict=None, **attr):
+    def add_node(self, n, attr_dict=None, stop=True, **attr):
         if n in self:
             existing = True
         else:
@@ -146,7 +152,11 @@ class Graph(nx.Graph, MyceliaServer):
             
         nx.Graph.add_node(self,n,attr_dict=attr_dict,**attr)        
         if not existing:
+            if stop:
+                self.stop_layout()
             myid = self.server.add_node()
+            if stop:
+                self.resume_layout()
             self.node[n][self.myid] = myid
         else:
             myid = self.node[n][self.myid]
@@ -155,20 +165,28 @@ class Graph(nx.Graph, MyceliaServer):
         return myid
 
     def add_nodes_from(self, nodes, **attr):
+        self.stop_layout()
         for n in nodes:
-            self.add_node(n, **attr)
+            self.add_node(n, stop=False, **attr)
+        self.resume_layout()
 
-    def remove_node(self,n):
+    def remove_node(self,n, stop=True):
         myid = self.node[n].get(self.myid, None)
         if myid is not None:
             nx.Graph.remove_node(self,n)
+            if stop:
+                self.stop_layout()
             self.server.delete_node(myid)
+            if stop:
+                self.resume_layout()
 
     def remove_nodes_from(self, nodes):
+        self.stop_layout()
         for n in nodes:
-            self.remove_node(n)
+            self.remove_node(n, stop=False)
+        self.resume_layout()
 
-    def add_edge(self, u, v, attr_dict=None, **attr):
+    def add_edge(self, u, v, attr_dict=None, stop=True, **attr):
         if (u,v) in self.edge:
             existing = True
         else:
@@ -178,7 +196,11 @@ class Graph(nx.Graph, MyceliaServer):
         nx.Graph.add_edge(self,u,v,attr_dict=attr_dict,**attr)
         
         if not existing:
+            if stop:
+                self.stop_layout()
             myid = self.server.add_edge(myid_u, myid_v)
+            if stop:
+                self.resume_layout()
             # automatically bidirectional 
             self.edge[u][v][self.myid] = myid
         else:
@@ -187,22 +209,30 @@ class Graph(nx.Graph, MyceliaServer):
         self._parse_edge_attrs(myid, self.edge[u][v])
 
         
-    def add_edges_from(self, ebunch, attr_dict=None, **attr):  
+    def add_edges_from(self, ebunch, attr_dict=None, stop=False, **attr):
+        self.stop_layout()
         for e in ebunch:
             u,v=e[0:2]
             self.add_edge(u,v,attr_dict=attr_dict,**attr)
+        self.resume_layout()
 
-    def remove_edge(self, u, v): 
+    def remove_edge(self, u, v, stop=True): 
         myid_u = self.node[u][self.myid]
         myid_v = self.node[v][self.myid]
         if myid_u is not None and myid_v is not None:
             nx.Graph.remove_edge(self,u,v)
+            if stop:
+                self.stop_layout()
             self.server.delete_edge(myid_u, myid_v)    
+            if stop:
+                self.resume_layout()
 
-    def remove_edges_from(self, ebunch): 
+    def remove_edges_from(self, ebunch):
+        self.stop_layout() 
         for e in ebunch:
             u,v=e[0:2]
-            self.remove_edge(u,v)
+            self.remove_edge(u,v, stop=False)
+        self.resume_layout()
             
 
 class DiGraph(nx.DiGraph, MyceliaServer):

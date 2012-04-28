@@ -262,6 +262,21 @@ public:
     }
 };
 
+class ResumeLayout  : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    ResumeLayout(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        app->resumeLayout();
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
 class SetCallback : public xmlrpc_c::method
 {
     Mycelia* app;
