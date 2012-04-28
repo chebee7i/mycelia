@@ -412,6 +412,8 @@ void Graph::setEdgeLabel(int edge, const std::string& label)
 void Graph::setEdgeWeight(int edge, float weight)
 {
     edgeMap[edge].weight = weight;
+
+    update();
 }
 
 /*

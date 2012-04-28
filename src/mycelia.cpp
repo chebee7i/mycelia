@@ -304,19 +304,21 @@ void Mycelia::buildGraphList(MyceliaDataItem* dataItem) const
     glEndList();
 }
 
-void Mycelia::drawEdge(int source, int target, const GLMaterial* material, const MyceliaDataItem* dataItem) const
+void Mycelia::drawEdge(const Edge& edge, const MyceliaDataItem* dataItem) const
 {
-    drawEdge(gCopy->getNodePosition(source),
-             gCopy->getNodePosition(target),
-             material,
+    drawEdge(gCopy->getNodePosition(edge.source),
+             gCopy->getNodePosition(edge.target),
+             gCopy->getEdgeMaterialFromId(edge.material),
+             edgeThickness * edge.weight,
              true,
-             gCopy->isBidirectional(source, target),
+             gCopy->isBidirectional(edge.source, edge.target),
              dataItem);
 }
 
 void Mycelia::drawEdge(const Vrui::Point& source,
                        const Vrui::Point& target,
                        const GLMaterial* material,
+                       const Vrui::Scalar edgeThickness,
                        bool drawArrow,
                        bool isBidirectional,
                        const MyceliaDataItem* dataItem) const
@@ -368,11 +370,11 @@ void Mycelia::drawEdges(const MyceliaDataItem* dataItem) const
     bool drawn[1000][1000] = {{false}};
 
     const GLMaterial *material;
+    Vrui::Scalar width;
+
     foreach(int edge, gCopy->getEdges())
     {
         const Edge& e = gCopy->getEdge(edge);
-
-        material = gCopy->getEdgeMaterial(edge);
 
         if(!isSelectedComponent(e.source) || drawn[e.source][e.target])
         {
@@ -381,16 +383,18 @@ void Mycelia::drawEdges(const MyceliaDataItem* dataItem) const
 
         if(bundleButton->getToggle())
         {
+            material = gCopy->getEdgeMaterial(edge);
+            width = edgeThickness * e.weight;
             for(int segment = 0; segment <= edgeBundler->getSegmentCount(); segment++)
             {
                 const Vrui::Point& p = *edgeBundler->getSegment(edge, segment);
                 const Vrui::Point& q = *edgeBundler->getSegment(edge, segment + 1);
-                drawEdge(p, q, material, false, false, dataItem);
+                drawEdge(p, q, material, width, false, false, dataItem);
             }
         }
         else
         {
-            drawEdge(e.source, e.target, material, dataItem);
+            drawEdge(e, dataItem);
             drawn[e.source][e.target] = true;
         }
     }
@@ -621,26 +625,26 @@ void Mycelia::drawShortestPath(MyceliaDataItem* dataItem) const
 {
     glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED));
 
-    const GLMaterial* material = gCopy->getEdgeMaterialFromId(MATERIAL_EDGE_DEFAULT);
-
     for(int i = selectedNode; i != previousNode; i = predecessorVector[i])
     {
         if(i == predecessorVector[i]) break;
 
         drawNode(i, dataItem);
-        drawEdge(i, predecessorVector[i], material, const_cast<MyceliaDataItem*>(dataItem) );
+        Edge e(i, predecessorVector[i]);
+        e.material = MATERIAL_SELECTED;
+        drawEdge(e, const_cast<MyceliaDataItem*>(dataItem) );
     }
 }
 
 void Mycelia::drawSpanningTree(MyceliaDataItem* dataItem) const
 {
     glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED));
-    const GLMaterial* material = gCopy->getEdgeMaterialFromId(MATERIAL_EDGE_DEFAULT);
 
     for(int i = 0; i < (int)predecessorVector.size(); i++)
     {
         drawNode(i, dataItem);
-        drawEdge(i, predecessorVector[i], material, const_cast<MyceliaDataItem*>(dataItem) );
+        Edge e(i, predecessorVector[i]);
+        drawEdge(e, const_cast<MyceliaDataItem*>(dataItem) );
     }
 }
 

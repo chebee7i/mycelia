@@ -27,6 +27,7 @@ class AttributeWindow;
 class BarabasiGenerator;
 class ChacoParser;
 class DotParser;
+class Edge;
 class EdgeBundler;
 class ErdosGenerator;
 class FruchtermanReingoldLayout;
@@ -142,8 +143,8 @@ public:
 
     // graph functions
     void buildGraphList(MyceliaDataItem*) const;
-    void drawEdge(int, int, const GLMaterial*, const MyceliaDataItem*) const;
-    void drawEdge(const Vrui::Point&, const Vrui::Point&, const GLMaterial*, bool, bool, const MyceliaDataItem*) const;
+    void drawEdge(const Edge&, const MyceliaDataItem*) const;
+    void drawEdge(const Vrui::Point&, const Vrui::Point&, const GLMaterial*, const Vrui::Scalar, bool, bool, const MyceliaDataItem*) const;
     void drawEdges(const MyceliaDataItem*) const;
     void drawEdgeLabels(const MyceliaDataItem*) const;
     void drawLogo(const MyceliaDataItem*) const;
