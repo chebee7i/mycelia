@@ -509,7 +509,12 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     glBindTexture(GL_TEXTURE_2D, imageId);
 
     glTranslatef(p[0], p[1], p[2]);
-    glRotate(invRotation);
+
+    if (gCopy->getTextureNodeMode() == "align")
+    {
+        // textures will point in camera's up direction
+        glRotate(invRotation);
+    }
 
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0); glVertex(origin - x - y);
