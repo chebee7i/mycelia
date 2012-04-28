@@ -27,7 +27,13 @@ FruchtermanReingoldLayout::FruchtermanReingoldLayout(Mycelia* application)
 
 void* FruchtermanReingoldLayout::layout()
 {
-    springForceConstant = Math::pow(VOLUME / application->g->getNodeCount(), 1.0 / 3.0);
+    int numNodes = application->g->getNodeCount();
+    if (numNodes == 0)
+    {
+        stopped = true;
+        return 0;
+    }
+    springForceConstant = Math::pow(VOLUME / numNodes, 1.0 / 3.0);
     
     for(remainingIterations = MAX_ITERATIONS; remainingIterations > 0 && !stopped; remainingIterations--)
     {
