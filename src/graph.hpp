@@ -68,7 +68,7 @@ public:
         component = 0;
         inDegree = 0;
         outDegree = 0;
-        material = 0;
+        material = MATERIAL_NODE_DEFAULT;
     }
 };
 
@@ -80,10 +80,22 @@ public:
     std::string label;
     int material;
     float weight;
-    
 
-    Edge() : source(0), target(0), material(0), weight(1) {}
-    Edge(int s, int t) : source(s), target(t), weight(1)  {}
+    Edge()
+       : source(0),
+         target(0),
+         material(MATERIAL_EDGE_DEFAULT),
+         weight(1)
+    {
+    }
+
+    Edge(int s, int t)
+      : source(s),
+        target(t),
+        material(MATERIAL_EDGE_DEFAULT),
+        weight(1)
+    {
+    }
 };
 
 class Graph
@@ -109,7 +121,7 @@ private:
 
     int version;
     Threads::Mutex mutex;
-    
+
     const std::list<int> empty; // returned by getEdges when none exist
 
 public:
@@ -121,6 +133,7 @@ public:
     void clearVelocities();
     void init();
     const std::pair<Vrui::Point, Vrui::Scalar> locate();
+    const GLMaterial* getEdgeMaterialFromId(int);
     const GLMaterial* getNodeMaterialFromId(int);
     const std::string& getTextureNodeMode() const;
     const int getVersion() const;
@@ -140,12 +153,15 @@ public:
     const std::set<int>& getEdges() const;
     const std::list<int>& getEdges(int, int);
     const int getEdgeCount() const;
+    const GLMaterial* getEdgeMaterial(int);
     const std::string& getEdgeLabel(int);
     const float getEdgeWeight(int);
     const bool hasEdge(int, int);
     const bool isBidirectional(int);
     const bool isBidirectional(int, int);
     const bool isValidEdge(int) const;
+    void setEdgeColor(int, int, int, int, int = 255.0);
+    void setEdgeColor(int, double, double, double, double = 1.0);
     void setEdgeLabel(int, const std::string&);
     void setEdgeWeight(int, float);
 

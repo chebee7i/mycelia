@@ -294,6 +294,28 @@ public:
     }
 };
 
+class SetEdgeColor : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    SetEdgeColor(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        int edge = params.getInt(0);
+        double r = params.getDouble(1);
+        double g = params.getDouble(2);
+        double b = params.getDouble(3);
+        double a = params.getDouble(4);
+        params.verifyEnd(5);
+
+        app->g->setEdgeColor(edge, r, g, b, a);
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
 class SetEdgeLabel : public xmlrpc_c::method
 {
     Mycelia* app;

@@ -142,8 +142,8 @@ public:
 
     // graph functions
     void buildGraphList(MyceliaDataItem*) const;
-    void drawEdge(int, int, const MyceliaDataItem*) const;
-    void drawEdge(const Vrui::Point&, const Vrui::Point&, bool, bool, const MyceliaDataItem*) const;
+    void drawEdge(int, int, const GLMaterial*, const MyceliaDataItem*) const;
+    void drawEdge(const Vrui::Point&, const Vrui::Point&, const GLMaterial*, bool, bool, const MyceliaDataItem*) const;
     void drawEdges(const MyceliaDataItem*) const;
     void drawEdgeLabels(const MyceliaDataItem*) const;
     void drawLogo(const MyceliaDataItem*) const;

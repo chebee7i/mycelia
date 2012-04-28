@@ -33,7 +33,7 @@ GraphBuilderFactory::GraphBuilderFactory(Vrui::ToolManager& toolManager, Mycelia
     : ToolFactory("GraphBuilder", toolManager), application(application)
 {
     layout.setNumButtons(0, 1); // 0th device requires 1 button
-    
+
     GraphBuilder::factory = this;
 }
 
@@ -72,12 +72,12 @@ void GraphBuilder::buttonCallback(int buttonIndex, Vrui::InputDevice::ButtonCall
 {
     Vrui::InputDevice* device = getButtonDevice(0);
     int selectedNode = factory->application->selectNode(device);
-    
+
     if(cbData->newButtonState)
     {
         factory->application->stopLayout();
         dragging = true;
-        
+
         if(selectedNode == SELECTION_NONE)
         {
             fromNode = factory->application->g->addNode(currentPosition);
@@ -86,7 +86,7 @@ void GraphBuilder::buttonCallback(int buttonIndex, Vrui::InputDevice::ButtonCall
         {
             fromNode = selectedNode;
         }
-        
+
         // for visual feedback
         factory->application->clearSelections();
         factory->application->setSelectedNode(fromNode);
@@ -96,7 +96,7 @@ void GraphBuilder::buttonCallback(int buttonIndex, Vrui::InputDevice::ButtonCall
     {
         dragging = false;
         int toNode;
-        
+
         if(selectedNode == SELECTION_NONE)
         {
             toNode = factory->application->g->addNode(currentPosition);
@@ -105,7 +105,7 @@ void GraphBuilder::buttonCallback(int buttonIndex, Vrui::InputDevice::ButtonCall
         {
             toNode = selectedNode;
         }
-        
+
         if(fromNode != toNode) factory->application->g->addEdge(fromNode, toNode);
         factory->application->setSelectedNode(toNode);
         factory->application->resumeLayout();
@@ -118,10 +118,12 @@ void GraphBuilder::display(GLContextData& contextData) const
     {
         bool drawArrow = true;
         bool bidirectional = false;
+        const GLMaterial* material = factory->application->g->getEdgeMaterialFromId(MATERIAL_EDGE_DEFAULT);
+
         MyceliaDataItem* dataItem = contextData.retrieveDataItem<MyceliaDataItem>(this);
         glPushMatrix();
         glMultMatrix(Vrui::getNavigationTransformation());
-        factory->application->drawEdge(fromPosition, currentPosition, drawArrow, bidirectional, dataItem);
+        factory->application->drawEdge(fromPosition, currentPosition, material, drawArrow, bidirectional, dataItem);
         glPopMatrix();
     }
 }
@@ -140,7 +142,7 @@ const Vrui::ToolFactory* GraphBuilder::getFactory(void) const
 Vrui::Point GraphBuilder::getPosition(Vrui::InputDevice* device) const
 {
     Vrui::Point pos;
-    
+
     if(device->is6DOFDevice())
     {
         pos = Vrui::getInverseNavigationTransformation().transform(device->getPosition());
@@ -149,10 +151,10 @@ Vrui::Point GraphBuilder::getPosition(Vrui::InputDevice* device) const
     {
         // calculate ray equation
         Vrui::Ray deviceRay(device->getPosition(), device->getRayDirection());
-        
+
         // find the closest intersection with any screen
         std::pair<Vrui::VRScreen*, Vrui::Scalar> screenPair = Vrui::findScreen(deviceRay);
-        
+
         if(screenPair.first != 0)
         {
             // get the intersection position in model coordinates
@@ -160,7 +162,7 @@ Vrui::Point GraphBuilder::getPosition(Vrui::InputDevice* device) const
             pos = Vrui::getInverseNavigationTransformation().transform(intersectionPoint);
         }
     }
-    
+
     return pos;
 }
 

@@ -304,12 +304,22 @@ void Mycelia::buildGraphList(MyceliaDataItem* dataItem) const
     glEndList();
 }
 
-void Mycelia::drawEdge(int source, int target, const MyceliaDataItem* dataItem) const
+void Mycelia::drawEdge(int source, int target, const GLMaterial* material, const MyceliaDataItem* dataItem) const
 {
-    drawEdge(gCopy->getNodePosition(source), gCopy->getNodePosition(target), true, gCopy->isBidirectional(source, target), dataItem);
+    drawEdge(gCopy->getNodePosition(source),
+             gCopy->getNodePosition(target),
+             material,
+             true,
+             gCopy->isBidirectional(source, target),
+             dataItem);
 }
 
-void Mycelia::drawEdge(const Vrui::Point& source, const Vrui::Point& target, bool drawArrow, bool isBidirectional, const MyceliaDataItem* dataItem) const
+void Mycelia::drawEdge(const Vrui::Point& source,
+                       const Vrui::Point& target,
+                       const GLMaterial* material,
+                       bool drawArrow,
+                       bool isBidirectional,
+                       const MyceliaDataItem* dataItem) const
 {
     // computer graphics 2nd ed, p.413
     const Vrui::Vector edgeVector = target - source;
@@ -325,6 +335,8 @@ void Mycelia::drawEdge(const Vrui::Point& source, const Vrui::Point& target, boo
         sourceOffset = edgeOffset;
         targetOffset = length - 2 * edgeOffset;
     }
+
+    glMaterial(GLMaterialEnums::FRONT_AND_BACK, *material);
 
     glPushMatrix();
 
@@ -353,12 +365,14 @@ void Mycelia::drawEdges(const MyceliaDataItem* dataItem) const
     this saves lots of time for very dense graphs.
     todo: the current approach to tracking drawn edges is a quick hack.
     */
-    glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_EDGE_DEFAULT));
     bool drawn[1000][1000] = {{false}};
 
+    const GLMaterial *material;
     foreach(int edge, gCopy->getEdges())
     {
         const Edge& e = gCopy->getEdge(edge);
+
+        material = gCopy->getEdgeMaterial(edge);
 
         if(!isSelectedComponent(e.source) || drawn[e.source][e.target])
         {
@@ -371,12 +385,12 @@ void Mycelia::drawEdges(const MyceliaDataItem* dataItem) const
             {
                 const Vrui::Point& p = *edgeBundler->getSegment(edge, segment);
                 const Vrui::Point& q = *edgeBundler->getSegment(edge, segment + 1);
-                drawEdge(p, q, false, false, dataItem);
+                drawEdge(p, q, material, false, false, dataItem);
             }
         }
         else
         {
-            drawEdge(e.source, e.target, dataItem);
+            drawEdge(e.source, e.target, material, dataItem);
             drawn[e.source][e.target] = true;
         }
     }
@@ -607,23 +621,26 @@ void Mycelia::drawShortestPath(MyceliaDataItem* dataItem) const
 {
     glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED));
 
+    const GLMaterial* material = gCopy->getEdgeMaterialFromId(MATERIAL_EDGE_DEFAULT);
+
     for(int i = selectedNode; i != previousNode; i = predecessorVector[i])
     {
         if(i == predecessorVector[i]) break;
 
         drawNode(i, dataItem);
-        drawEdge(i, predecessorVector[i], const_cast<MyceliaDataItem*>(dataItem) );
+        drawEdge(i, predecessorVector[i], material, const_cast<MyceliaDataItem*>(dataItem) );
     }
 }
 
 void Mycelia::drawSpanningTree(MyceliaDataItem* dataItem) const
 {
     glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED));
+    const GLMaterial* material = gCopy->getEdgeMaterialFromId(MATERIAL_EDGE_DEFAULT);
 
     for(int i = 0; i < (int)predecessorVector.size(); i++)
     {
         drawNode(i, dataItem);
-        drawEdge(i, predecessorVector[i], const_cast<MyceliaDataItem*>(dataItem) );
+        drawEdge(i, predecessorVector[i], material, const_cast<MyceliaDataItem*>(dataItem) );
     }
 }
 
@@ -765,7 +782,7 @@ void Mycelia::setStatus(const char* status) const
 void Mycelia::resumeLayout() const
 {
     // Resume only if dynamic and not skipping.
-    
+
     // The reason we do not resume if the layout is static is because starting
     // a static layout is equivalent to running resetLayout, which is not
     // always desirable.
@@ -1087,7 +1104,7 @@ void Mycelia::resetLayout(bool watch)
     // reset layout state
     g->randomizePositions(100);
     g->clearVelocities();
-    
+
     // In order to avoid a flicker during layout...let's recenter.
     if (watch)
     {

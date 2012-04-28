@@ -91,7 +91,7 @@ void Graph::init()
     version = -1;
     nodeId = -1;
     edgeId = -1;
-    
+
     lastCenter[0] = 0;
     lastCenter[1] = 0;
     lastCenter[2] = 0;
@@ -144,10 +144,10 @@ const pair<Vrui::Point, Vrui::Scalar> Graph::locate()
     mutex.unlock();
 
     if(maxDistance == 0) maxDistance = 30;
-    
+
     lastCenter = center;
     lastMaxDistance = maxDistance;
-    
+
     return pair<Vrui::Point, Vrui::Scalar>(center, maxDistance);
 }
 
@@ -156,6 +156,16 @@ const GLMaterial* Graph::getNodeMaterialFromId(int materialId)
     if(materialId < 0 || materialId >= (int)materialVector.size())
     {
         return materialVector[MATERIAL_NODE_DEFAULT];
+    }
+
+    return materialVector[materialId];
+}
+
+const GLMaterial* Graph::getEdgeMaterialFromId(int materialId)
+{
+    if(materialId < 0 || materialId >= (int)materialVector.size())
+    {
+        return materialVector[MATERIAL_EDGE_DEFAULT];
     }
 
     return materialVector[materialId];
@@ -320,6 +330,11 @@ const std::string& Graph::getEdgeLabel(int edge)
     return edgeMap[edge].label;
 }
 
+const GLMaterial* Graph::getEdgeMaterial(int edge)
+{
+    return getEdgeMaterialFromId(edgeMap[edge].material);
+}
+
 const float Graph::getEdgeWeight(int edge)
 {
     return edgeMap[edge].weight;
@@ -355,6 +370,38 @@ const bool Graph::isValidEdge(int edge) const
     return edgeMap.find(edge) != edgeMap.end();
 }
 
+void Graph::setEdgeColor(int edge, int r, int g, int b, int a)
+{
+    setEdgeColor(edge, r / 255.0, g / 255.0, b / 255.0, a / 255.0);
+}
+
+void Graph::setEdgeColor(int edge, double r, double g, double b, double a)
+{
+    GLMaterial::Color c(r, g, b, a);
+    int materialId = -1;
+
+    // look for color in the cache
+    for(int i = 0; i < (int)materialVector.size(); i++)
+    {
+        if(materialVector[i]->ambient == c)
+        {
+            materialId = i;
+            break;
+        }
+    }
+
+    // if not found, add it
+    if(materialId == -1)
+    {
+        materialVector.push_back(new GLMaterial(c));
+        materialId = materialVector.size() - 1;
+    }
+
+    edgeMap[edge].material = materialId;
+
+    update();
+}
+
 void Graph::setEdgeLabel(int edge, const std::string& label)
 {
     edgeMap[edge].label = string(label);
@@ -379,8 +426,8 @@ const int Graph::addNode()
     Vrui::Scalar scale = lastMaxDistance / 2; // effective radius
 
     // New point should be around previous center of graph
-    n.position = Vrui::Point(lastCenter[0] + scale * (2 * VruiHelp::randomFloat() - 1), 
-                             lastCenter[1] + scale * (2 * VruiHelp::randomFloat() - 1), 
+    n.position = Vrui::Point(lastCenter[0] + scale * (2 * VruiHelp::randomFloat() - 1),
+                             lastCenter[1] + scale * (2 * VruiHelp::randomFloat() - 1),
                              lastCenter[2] + scale * (2 * VruiHelp::randomFloat() - 1) );
 
     nodeId++;

@@ -46,6 +46,7 @@ void* RpcServer::run()
     r.addMethod("randomize_positions", new RandomizePositions(app));
     r.addMethod("resume_layout", new ResumeLayout(app));
     r.addMethod("set_callback", new SetCallback(app, this));
+    r.addMethod("set_edge_color", new SetEdgeColor(app));
     r.addMethod("set_edge_label", new SetEdgeLabel(app));
     r.addMethod("set_edge_weight", new SetEdgeWeight(app));
     r.addMethod("set_layout_type", new SetLayoutType(app));
