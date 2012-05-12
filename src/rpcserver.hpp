@@ -491,6 +491,25 @@ public:
     }
 };
 
+class SetNodeImageScale : public xmlrpc_c::method
+{
+    Mycelia* app;
+
+public:
+    SetNodeImageScale(Mycelia* app) : app(app) {}
+
+    void execute(const xmlrpc_c::paramList& params, xmlrpc_c::value* retval)
+    {
+        int node = params.getInt(0);
+        double scale = params.getDouble(1);
+        params.verifyEnd(2);
+
+        app->g->setNodeImageScale(node, scale);
+
+        *retval = xmlrpc_c::value_int(0);
+    }
+};
+
 class SetTextureNodeMode : public xmlrpc_c::method
 {
     Mycelia* app;

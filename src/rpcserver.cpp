@@ -56,6 +56,7 @@ void* RpcServer::run()
     r.addMethod("set_node_size", new SetNodeSize(app));
     r.addMethod("set_node_type", new SetNodeType(app));
     r.addMethod("set_node_image_path", new SetNodeImagePath(app));
+    r.addMethod("set_node_image_scale", new SetNodeImageScale(app));    
     r.addMethod("set_status", new SetStatus(app));
     r.addMethod("set_texture_node_mode", new SetTextureNodeMode(app));
     r.addMethod("start_layout", new StartLayout(app));

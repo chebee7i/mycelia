@@ -538,6 +538,11 @@ const std::string& Graph::getNodeImagePath(int node)
     return nodeMap[node].imagePath;
 }
 
+const double Graph::getNodeImageScale(int node)
+{
+    return nodeMap[node].imageScale;
+}
+
 const Vrui::Point& Graph::getNodePosition(int node)
 {
     return nodeMap[node].position;
@@ -639,6 +644,12 @@ void Graph::setNodeImagePath(int node, const string& imagePath)
     update();
 }
 
+void Graph::setNodeImageScale(int node, const double& scale)
+{
+    nodeMap[node].imageScale = scale;
+
+    update();
+}
 
 void Graph::setNodeLabel(int node, const std::string& label)
 {

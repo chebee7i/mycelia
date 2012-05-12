@@ -49,8 +49,7 @@ public:
 
     // These are used if the type is "image".
     std::string imagePath;
-    int imageWidth;
-    int imageHeight;
+    double imageScale;
 
     Attributes attributes;
     float size;
@@ -69,6 +68,7 @@ public:
         inDegree = 0;
         outDegree = 0;
         material = MATERIAL_NODE_DEFAULT;
+        imageScale = 1;
     }
 };
 
@@ -177,10 +177,11 @@ public:
     const std::string& getNodeLabel(int);
     const std::set<int>& getNodes() const;
     const int getNodeCount() const;
+    const std::string& getNodeImagePath(int);
+    const double getNodeImageScale(int);
     const GLMaterial* getNodeMaterial(int);
     const Vrui::Point& getNodePosition(int);
     const Vrui::Vector& getNodeVelocity(int);
-    const std::string& getNodeImagePath(int);
     const float getNodeSize(int);
     const std::string& getNodeType(int);
     const Vrui::Point& getSourceNodePosition(int);
@@ -192,6 +193,7 @@ public:
     void setNodeColor(int, int, int, int, int = 255.0);
     void setNodeColor(int, double, double, double, double = 1.0);
     void setNodeImagePath(int, const std::string&);
+    void setNodeImageScale(int, const double&);    
     void setNodeLabel(int, const std::string&);
     void setNodePosition(int, const Vrui::Point&);
     void setNodeType(int, const std::string&);

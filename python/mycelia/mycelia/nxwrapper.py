@@ -21,7 +21,7 @@ class MyceliaServer:
         self.label = label
         self.myid = 'mycelia_id'
 
-        self.node_types = ['shape', 'image']
+        self.node_types = ['shape', 'image', 'imageScale']
         self.texture_modes = ['align', 'rotate']
         self.layout_types = {'static':0, 'dynamic':1}
 
@@ -63,6 +63,10 @@ class MyceliaServer:
                 self.server.set_node_type(myid, 'image')
                 self.server.set_node_image_path(myid, path)
 
+        if 'imageScale' in attrs:
+            scale = attrs['imageScale']
+            self.server.set_node_image_scale(myid, float(scale))
+    
         for attr in self.custom_node_attrs:
             val = attrs.get(attr, None)
             if val is not None:

@@ -495,8 +495,8 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     float width = W / H * Vrui::getDisplaySize()/3;
     float height =  Vrui::getDisplaySize()/2;
     **/
-    float width = W / H * 2*nodeRadius;
-    float height =  2*nodeRadius;
+    float width = W / H * nodeRadius;
+    float height = nodeRadius;
 
     const Vrui::Point& p = gCopy->getNodePosition(node);
 
@@ -514,6 +514,10 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     glBindTexture(GL_TEXTURE_2D, imageId);
 
     glTranslatef(p[0], p[1], p[2]);
+    
+    // Note: This does not allow the aspect ratio to change.
+    double scale = gCopy->getNodeImageScale(node);
+    glScalef(scale,scale,scale);
 
     if (gCopy->getTextureNodeMode() == "align")
     {
