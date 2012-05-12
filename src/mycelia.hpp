@@ -130,8 +130,8 @@ private:
     int selectedNode;
     int previousNode;
     float coneAngle;
-    Vrui::Vector xVector;
-    Vrui::Vector zVector;
+    Vrui::Vector rightVector;
+    Vrui::Vector upVector;
 
 #ifdef __RPCSERVER__
     RpcServer* server;

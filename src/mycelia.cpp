@@ -251,8 +251,10 @@ Mycelia::Mycelia(int argc, char** argv, char** appDefaults)
     selectedNode = SELECTION_NONE;
     previousNode = SELECTION_NONE;
     coneAngle = 0.005;
-    xVector = Vrui::Vector(1, 0, 0);
-    zVector = Vrui::Vector(0, 0, 1);
+    
+    upVector = Vrui::getUpDirection();
+    rightVector = Geometry::cross( Vrui::getForwardDirection(), upVector );
+
 #ifdef __RPCSERVER__
     server = new RpcServer(this);
 #endif
@@ -289,7 +291,8 @@ void Mycelia::buildGraphList(MyceliaDataItem* dataItem) const
 
     glNewList(dataItem->graphList, GL_COMPILE);
 
-    // Camera aligned texture nodes cannot be part of the display list.
+    // Camera aligned texture nodes cannot be part of the display list since
+    // we must readjust their orientation anytime we are rotating the graph.
     if (gCopy->getTextureNodeMode() == "align")
     {
         std::string filter = "image";
@@ -325,7 +328,7 @@ void Mycelia::drawEdge(const Vrui::Point& source,
 {
     // computer graphics 2nd ed, p.413
     const Vrui::Vector edgeVector = target - source;
-    const Vrui::Vector normalVector = Geometry::cross(edgeVector, zVector);
+    const Vrui::Vector normalVector = Geometry::cross(edgeVector, upVector);
     const Vrui::Scalar length = Geometry::mag(edgeVector);
 
     // calculate space for directional arrow(s)
@@ -344,7 +347,7 @@ void Mycelia::drawEdge(const Vrui::Point& source,
 
     // translate to point 1 and rotate towards point 2
     glTranslatef(source[0], source[1], source[2]);
-    glRotatef(-VruiHelp::degrees(VruiHelp::angle(edgeVector, zVector)), normalVector[0], normalVector[1], normalVector[2]);
+    glRotatef(-VruiHelp::degrees(VruiHelp::angle(edgeVector, upVector)), normalVector[0], normalVector[1], normalVector[2]);
 
     // draw edge, leaving room for arrow
     glTranslatef(0, 0, sourceOffset);
@@ -405,7 +408,14 @@ void Mycelia::drawEdgeLabels(const MyceliaDataItem* dataItem) const
     if(!edgeLabelButton->getToggle()) return;
 
     Vrui::Rotation inverseRotation = Vrui::getInverseNavigationTransformation().getRotation();
-    inverseRotation *= Vrui::Rotation(xVector, Vrui::Scalar(M_PI / 2));
+    
+    // Fonts are drawn with up direction (0,1,0). So we need to rotate them to
+    // Vrui's up direction which is not necessarily (0,0,1).
+    Vrui::Vector fontUpVector = Vrui::Vector(0,1,0);
+    Vrui::Scalar angle = VruiHelp::angle( fontUpVector, upVector );
+    Vrui::Vector rotationAxis = Geometry::cross(fontUpVector, upVector);
+    inverseRotation *= Vrui::Rotation(rotationAxis, angle);
+    
     float scale = nodeRadius * FONT_MODIFIER;
 
     foreach(int edge, gCopy->getEdges())
@@ -490,14 +500,9 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
 
     const Vrui::Point& p = gCopy->getNodePosition(node);
 
-    Vrui::Vector fw=Vrui::getForwardDirection();
-    Vrui::Vector up=Vrui::getUpDirection();
-    Vrui::Vector right=Geometry::cross(fw,up);
-    Vrui::Point origin = Vrui::Point::origin;
-
-    Vrui::Vector x(right);
+    Vrui::Vector x(rightVector);
     x *= width;
-    Vrui::Vector y(up);
+    Vrui::Vector y(upVector);
     y *= height;
 
     glPushMatrix();
@@ -516,6 +521,7 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
         glRotate(invRotation);
     }
 
+    Vrui::Point origin = Vrui::Point::origin;
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0); glVertex(origin - x - y);
     glTexCoord2f(1, 0); glVertex(origin + x - y);
@@ -592,7 +598,14 @@ void Mycelia::drawNodeLabels(const MyceliaDataItem* dataItem) const
     if(!nodeLabelButton->getToggle()) return;
 
     Vrui::Rotation inverseRotation = Vrui::getInverseNavigationTransformation().getRotation();
-    inverseRotation *= Vrui::Rotation(xVector, Vrui::Scalar(M_PI / 2));
+
+    // Fonts are drawn with up direction (0,1,0). So we need to rotate them to
+    // Vrui's up direction which is not necessarily (0,0,1).
+    Vrui::Vector fontUpVector = Vrui::Vector(0,1,0);
+    Vrui::Scalar angle = VruiHelp::angle( fontUpVector, upVector );
+    Vrui::Vector rotationAxis = Geometry::cross(fontUpVector, upVector);
+    inverseRotation *= Vrui::Rotation(rotationAxis, angle);
+    
     float scale = nodeRadius * FONT_MODIFIER;
 
     foreach(int node, gCopy->getNodes())
@@ -679,7 +692,8 @@ void Mycelia::display(GLContextData& contextData) const
         glCallList(dataItem->graphList);
 
         // Camera aligned texture nodes must be redrawn each time.
-        // Rotatable texture nodes will be in the display list.
+        // Rotatable texture nodes will be in the display list and thus
+        // will rotate so long as we don't redraw the display list.
         if (gCopy->getTextureNodeMode() == "align")
         {
             std::string filter = "shape";
