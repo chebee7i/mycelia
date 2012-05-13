@@ -518,6 +518,8 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     glDisable(GL_CULL_FACE);
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindTexture(GL_TEXTURE_2D, imageId);
 
@@ -543,6 +545,7 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     glTexCoord2f(0, 1); glVertex(origin - x + y);
     glEnd();
 
+    glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_LIGHTING);
     glEnable(GL_CULL_FACE);

@@ -98,10 +98,10 @@ public:
 
         // open a new image file
         //
-        Images::RGBImage image;
+        Images::RGBAImage image;
         try
         {
-            image = Images::readImageFile(imagePath.c_str());
+            image = Images::readTransparentImageFile(imagePath.c_str());
         }
         catch (...)
         {
@@ -132,7 +132,7 @@ public:
         glBindTexture(GL_TEXTURE_2D, imageId);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        image.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB);
+        image.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA);
         return TexturePair( imageId, size );
     }
 };
