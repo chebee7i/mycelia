@@ -123,7 +123,9 @@ void GraphBuilder::display(GLContextData& contextData) const
         MyceliaDataItem* dataItem = contextData.retrieveDataItem<MyceliaDataItem>(this);
         glPushMatrix();
         glMultMatrix(Vrui::getNavigationTransformation());
-        factory->application->drawEdge(fromPosition, currentPosition, material, 1.0, drawArrow, bidirectional, dataItem);
+        factory->application->drawEdge(fromPosition, currentPosition, material, 
+                                       factory->application->getEdgeThickness(), 
+                                       drawArrow, bidirectional, dataItem);
         glPopMatrix();
     }
 }

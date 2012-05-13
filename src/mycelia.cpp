@@ -307,15 +307,18 @@ void Mycelia::buildGraphList(MyceliaDataItem* dataItem) const
     glEndList();
 }
 
-void Mycelia::drawEdge(const Edge& edge, const MyceliaDataItem* dataItem) const
+void Mycelia::drawEdge(const Edge& edge, MyceliaDataItem* dataItem) const
 {
+    std::cout << "\nsource/target = " << edge.source << " " << edge.target << std::endl;
     drawEdge(gCopy->getNodePosition(edge.source),
              gCopy->getNodePosition(edge.target),
              gCopy->getEdgeMaterialFromId(edge.material),
              edgeThickness * edge.weight,
              true,
              gCopy->isBidirectional(edge.source, edge.target),
-             dataItem);
+             dataItem,
+             getNodeEdgeOffset(edge.source, dataItem),
+             getNodeEdgeOffset(edge.target, dataItem));
 }
 
 void Mycelia::drawEdge(const Vrui::Point& source,
@@ -324,21 +327,28 @@ void Mycelia::drawEdge(const Vrui::Point& source,
                        const Vrui::Scalar edgeThickness,
                        bool drawArrow,
                        bool isBidirectional,
-                       const MyceliaDataItem* dataItem) const
-{
+                       MyceliaDataItem* dataItem,
+                       double sourceEdgeOffset,
+                       double targetEdgeOffset) const
+{  
     // computer graphics 2nd ed, p.413
     const Vrui::Vector edgeVector = target - source;
     const Vrui::Vector normalVector = Geometry::cross(edgeVector, upVector);
     const Vrui::Scalar length = Geometry::mag(edgeVector);
 
     // calculate space for directional arrow(s)
-    double sourceOffset = 0;
-    double targetOffset = drawArrow ? length - edgeOffset : length;
+    double sourceOffset = sourceEdgeOffset;
+    double targetOffset = length - sourceOffset - targetEdgeOffset;
+    if (drawArrow)
+    {
+        // make room for the arrow head
+        targetOffset -= edgeOffset;
+    }
 
     if(isBidirectional && drawArrow)
     {
-        sourceOffset = edgeOffset;
-        targetOffset = length - 2 * edgeOffset;
+        sourceOffset += edgeOffset;
+        targetOffset -= edgeOffset;
     }
 
     glMaterial(GLMaterialEnums::FRONT_AND_BACK, *material);
@@ -355,7 +365,8 @@ void Mycelia::drawEdge(const Vrui::Point& source,
 
     if(drawArrow)
     {
-        // move near point 2 and draw arrow
+        // move near point 2 and draw arrow for this directed edge only.
+        // if bidirectional, the other arrow will be drawn with that edge is drawn
         glTranslatef(0, 0, targetOffset);
         glCallList(dataItem->arrowList);
     }
@@ -363,7 +374,7 @@ void Mycelia::drawEdge(const Vrui::Point& source,
     glPopMatrix();
 }
 
-void Mycelia::drawEdges(const MyceliaDataItem* dataItem) const
+void Mycelia::drawEdges(MyceliaDataItem* dataItem) const
 {
     /*
     we don't draw an edge if one was already drawn between two nodes.
@@ -403,7 +414,7 @@ void Mycelia::drawEdges(const MyceliaDataItem* dataItem) const
     }
 }
 
-void Mycelia::drawEdgeLabels(const MyceliaDataItem* dataItem) const
+void Mycelia::drawEdgeLabels(MyceliaDataItem* dataItem) const
 {
     if(!edgeLabelButton->getToggle()) return;
 
@@ -441,7 +452,7 @@ void Mycelia::drawEdgeLabels(const MyceliaDataItem* dataItem) const
     }
 }
 
-void Mycelia::drawLogo(const MyceliaDataItem* dataItem) const
+void Mycelia::drawLogo(MyceliaDataItem* dataItem) const
 {
     // Haven't figure out what Render() is changing...but unless we push
     // GL_TEXTURE_BIT, the rendered text disappears on the second call to
@@ -491,19 +502,17 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     const Vrui::NavTransform& inv = Vrui::getInverseNavigationTransformation();
     const Vrui::Rotation invRotation = inv.getRotation();
 
-    /**
-    float width = W / H * Vrui::getDisplaySize()/3;
-    float height =  Vrui::getDisplaySize()/2;
-    **/
-    float width = W / H * nodeRadius;
-    float height = nodeRadius;
+    // height is equal to node diameter
+    float height = 2 * nodeRadius;
+    float width = W / H * height;
 
     const Vrui::Point& p = gCopy->getNodePosition(node);
 
+    // When we draw this, we center the image, so x is half the width.
     Vrui::Vector x(rightVector);
-    x *= width;
+    x *= width / 2;
     Vrui::Vector y(upVector);
-    y *= height;
+    y *= height / 2;
 
     glPushMatrix();
 
@@ -516,6 +525,8 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     glTranslatef(p[0], p[1], p[2]);
     
     // Note: This does not allow the aspect ratio to change.
+    // Note: Assuming an rightVector and upVector are perpendicular, this is 
+    //       equivalent to: (width, height) *= scale
     double scale = gCopy->getNodeImageScale(node);
     glScalef(scale,scale,scale);
 
@@ -597,7 +608,7 @@ void Mycelia::drawNodes(MyceliaDataItem* dataItem, std::string filter) const
     }
 }
 
-void Mycelia::drawNodeLabels(const MyceliaDataItem* dataItem) const
+void Mycelia::drawNodeLabels(MyceliaDataItem* dataItem) const
 {
     if(!nodeLabelButton->getToggle()) return;
 
@@ -721,6 +732,38 @@ void Mycelia::display(GLContextData& contextData) const
         }
     }
 
+}
+
+double Mycelia::getNodeEdgeOffset(int node, MyceliaDataItem* dataItem) const
+{
+    // Determine an additional offset while drawing edges due to the node
+    // being rendered as an texture which can have its own scale.
+    
+    double offset = nodeRadius;    
+    
+    std::string type = gCopy->getNodeType(node);
+    if (type == "image")
+    {
+        std::string imagePath = gCopy->getNodeImagePath(node);
+        std::pair<GLuint, std::pair<float, float> > texturePair = dataItem->getTextureId(imagePath);
+        GLuint imageId = texturePair.first;
+        if (imageId != 0)
+        {
+            // The height is normalized to nodeDiameter = 2*nodeRadius when 
+            // imageScale = 1. So we use the height as the diameter of the sphere which edges
+            // should end on. This gives a sphere inscribed in a cube
+            // determined by the image's height. Assuming the right and up
+            // vectors are perpendicular, the image dimensions W,H are 
+            // scaled during its drawing simply by imageScale. So the rendered
+            // height in navigation coordiantes is just: nodeRadius * imageScale.
+            // Dividing by two gives the radius which is our offset.
+            double imageScale = gCopy->getNodeImageScale(node);
+            offset = nodeRadius * imageScale;
+            return offset;
+        }
+    }
+    offset = nodeRadius * gCopy->getNodeSize(node);
+    return offset;
 }
 
 void Mycelia::frame()
@@ -1204,7 +1247,7 @@ void Mycelia::resetNavigationCallback(Misc::CallbackData* cbData)
     arrowHeight = nodeRadius / 2;
     arrowWidth = arrowHeight / 2;
     edgeThickness = nodeRadius / 7;
-    edgeOffset = nodeRadius + arrowHeight;
+    edgeOffset = arrowHeight;
 
     Vrui::setNavigationTransformation(Vrui::Point::origin, radius);
 
@@ -1360,6 +1403,11 @@ Vrui::Scalar Mycelia::getArrowWidth() const
 Vrui::Scalar Mycelia::getArrowHeight() const
 {
     return arrowHeight;
+}
+
+Vrui::Scalar Mycelia::getEdgeThickness() const
+{
+    return edgeThickness;
 }
 
 int main(int argc, char** argv)

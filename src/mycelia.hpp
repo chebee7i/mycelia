@@ -143,20 +143,25 @@ public:
 
     // graph functions
     void buildGraphList(MyceliaDataItem*) const;
-    void drawEdge(const Edge&, const MyceliaDataItem*) const;
-    void drawEdge(const Vrui::Point&, const Vrui::Point&, const GLMaterial*, const Vrui::Scalar, bool, bool, const MyceliaDataItem*) const;
-    void drawEdges(const MyceliaDataItem*) const;
-    void drawEdgeLabels(const MyceliaDataItem*) const;
-    void drawLogo(const MyceliaDataItem*) const;
+    void drawEdge(const Edge&, MyceliaDataItem*) const;
+    void drawEdge(const Vrui::Point&, const Vrui::Point&, 
+                  const GLMaterial*, const Vrui::Scalar, bool, bool, 
+                  MyceliaDataItem*, 
+                  double sourceEdgeOffset=0, double targetEdgeOffset=0) const;
+    void drawEdges(MyceliaDataItem*) const;
+    void drawEdgeLabels(MyceliaDataItem*) const;
+    void drawLogo(MyceliaDataItem*) const;
     void drawNode(int, MyceliaDataItem*) const;
     bool drawShapeNode(int, MyceliaDataItem*) const;
     bool drawTextureNode(int, MyceliaDataItem*) const;
     void drawNodes(MyceliaDataItem*, std::string filter="none") const;
-    void drawNodeLabels(const MyceliaDataItem*) const;
+    void drawNodeLabels(MyceliaDataItem*) const;
     void drawShortestPath(MyceliaDataItem*) const;
     void drawSpanningTree(MyceliaDataItem*) const;
     void fileOpen(std::string &filename);
+    double getNodeEdgeOffset(int node, MyceliaDataItem*) const;
     bool isSelectedComponent(int) const;
+
 
     // layout functions
     void resetLayout(bool watch=true);
@@ -202,6 +207,7 @@ public:
     // arrowhead
     Vrui::Scalar getArrowWidth() const;
     Vrui::Scalar getArrowHeight() const;
+    Vrui::Scalar getEdgeThickness() const;
 
     // other
     Graph* g; // wrap this eventually
