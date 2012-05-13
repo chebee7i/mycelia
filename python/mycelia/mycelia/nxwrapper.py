@@ -213,17 +213,18 @@ class Graph(nx.Graph, MyceliaServer):
         if not existing:
             if stop:
                 self.stop_layout()
-            myid = self.server.add_edge(myid_u, myid_v)
-            myid = self.server.add_edge(myid_v, myid_u)
+            myid1 = self.server.add_edge(myid_u, myid_v)
+            myid2 = self.server.add_edge(myid_v, myid_u)
             if stop:
                 self.resume_layout()
             # bidirectional
-            self.edge[u][v][self.myid] = myid
-            self.edge[v][u][self.myid] = myid
+            self.edge[u][v][self.myid] = (myid1, myid2)
+            self.edge[v][u][self.myid] = (myid1, myid2)
         else:
-            myid = self.edge[u][v][self.myid]
+            (myid1, myid2) = self.edge[u][v][self.myid]
 
-        self._parse_edge_attrs(myid, self.edge[u][v])
+        self._parse_edge_attrs(myid1, self.edge[u][v])
+        self._parse_edge_attrs(myid2, self.edge[u][v])        
 
 
     def add_edges_from(self, ebunch, attr_dict=None, stop=False, **attr):
