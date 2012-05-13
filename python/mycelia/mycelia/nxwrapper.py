@@ -214,6 +214,7 @@ class Graph(nx.Graph, MyceliaServer):
             if stop:
                 self.stop_layout()
             myid = self.server.add_edge(myid_u, myid_v)
+            myid = self.server.add_edge(myid_v, myid_u)
             if stop:
                 self.resume_layout()
             # bidirectional
@@ -240,6 +241,7 @@ class Graph(nx.Graph, MyceliaServer):
             if stop:
                 self.stop_layout()
             self.server.delete_edge(myid_u, myid_v)
+            self.server.delete_edge(myid_v, myid_u)
             if stop:
                 self.resume_layout()
 

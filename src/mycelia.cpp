@@ -309,7 +309,6 @@ void Mycelia::buildGraphList(MyceliaDataItem* dataItem) const
 
 void Mycelia::drawEdge(const Edge& edge, MyceliaDataItem* dataItem) const
 {
-    std::cout << "\nsource/target = " << edge.source << " " << edge.target << std::endl;
     drawEdge(gCopy->getNodePosition(edge.source),
              gCopy->getNodePosition(edge.target),
              gCopy->getEdgeMaterialFromId(edge.material),
