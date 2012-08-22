@@ -1366,7 +1366,43 @@ int Mycelia::selectNode(const Vrui::Point& clickPosition) const
 int Mycelia::selectNode(const Vrui::Ray& ray) const
 {
     int nearest = SELECTION_NONE;
-    float coneAngle2 = Math::sqr(coneAngle);
+
+    // Choosing an initial cone angle is difficult and depends on (at least)
+    // the following factors:
+    //
+    //    1) the distance from the ray origin to the nodes
+    //    2) the node radius
+    //
+    // Note that the zoom factor changes how far away the ray origin is. So,
+    // take the ray and make tagent to some node of radius R.  The vector from
+    // the ray origin to the center of the node forms an angle. This is our
+    // desired angle. A consequence of this is that closer
+    // nodes will need a larger steradian while farther away nodes need a
+    // smaller steradian.  Making matters worse, the radius of each node can
+    // be specified independently. All of this makes it difficult to select
+    // a single best cone angle. Also, we need this to be fast as it is
+    // calculated each time the cursor moves. Note: Our angle is specified
+    // entirely in terms cross-sections, dot products, etc.  To make the
+    // connection to steradians and the angle typically related to it, recall
+    // that the angle is usually measured symmetrically about the ray. So
+    // it would be necesary to cut our angle in half.
+    //
+    // Here is how can compromise: The center of the graph is kept at the
+    // origin. So we can use the norm of the ray origin as broad measure for
+    // the distance that each node in the graph is away from the origin.
+    // We will also use the standard nodeRadius, essentially assuming we are
+    // looking for standard sized nodes.  Finding larger nodes means you will
+    // need to enter them before they are detected. Finding smaller nodes
+    // means you will find them before your cursor actually touches the
+    // circumference.  We know the hypotenuse (norm of the ray origin) and
+    // the opposite leg (nodeRadius). So the angle we'd like is: arcsin(r/d).
+
+    // When zoomed in quite a bit, the selection is off and you must go inside
+    // the node in order for it to be selected. I'm not sure why this happens
+    // exactly.  One thought is that I need to scale the radius with the zoom
+    // factor.  However, this doesn't seem to be the case because the picking
+    // adjusts properly within other zoom levels.
+    float coneAngle2 = Math::asin( Math::sqr(nodeRadius) / Geometry::sqr(ray.getOrigin()) );
     float lambdaMin2 = numeric_limits<float>::max();
 
     foreach(int node, g->getNodes())
