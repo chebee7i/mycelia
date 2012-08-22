@@ -80,9 +80,10 @@ void Graph::init()
 
     // TODO: Move back to dataitem.cpp
     materialVector.clear();
-    materialVector.resize(4);
+    materialVector.resize(5);
     materialVector[MATERIAL_NODE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.0, 1.0, 1.0));
     materialVector[MATERIAL_EDGE_DEFAULT] = new GLMaterial(GLMaterial::Color(0.5, 0.5, 0.5));
+    materialVector[MATERIAL_HIGHLIGHTED] = new GLMaterial(GLMaterial::Color(1.0, .980392, .80392));
     materialVector[MATERIAL_SELECTED] = new GLMaterial(GLMaterial::Color(1.0, 0.5, 1.0));
     materialVector[MATERIAL_SELECTED_PREVIOUS] = new GLMaterial(GLMaterial::Color(1.0, 0.0, 1.0));
 

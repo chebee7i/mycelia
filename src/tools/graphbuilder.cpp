@@ -70,21 +70,18 @@ GraphBuilder::GraphBuilder(const Vrui::ToolFactory* factory, const Vrui::ToolInp
 
 void GraphBuilder::buttonCallback(int buttonIndex, Vrui::InputDevice::ButtonCallbackData* cbData)
 {
-    Vrui::InputDevice* device = getButtonDevice(0);
-    int selectedNode = factory->application->selectNode(device);
-
     if(cbData->newButtonState)
     {
         factory->application->stopLayout();
         dragging = true;
 
-        if(selectedNode == SELECTION_NONE)
+        if(toNode == SELECTION_NONE)
         {
             fromNode = factory->application->g->addNode(currentPosition);
         }
         else
         {
-            fromNode = selectedNode;
+            fromNode = toNode;
         }
 
         // for visual feedback
@@ -95,19 +92,19 @@ void GraphBuilder::buttonCallback(int buttonIndex, Vrui::InputDevice::ButtonCall
     else
     {
         dragging = false;
-        int toNode;
+        int gbToNode;
 
-        if(selectedNode == SELECTION_NONE)
+        if(toNode == SELECTION_NONE)
         {
-            toNode = factory->application->g->addNode(currentPosition);
+            gbToNode = factory->application->g->addNode(currentPosition);
         }
         else
         {
-            toNode = selectedNode;
+            gbToNode = toNode;
         }
 
-        if(fromNode != toNode) factory->application->g->addEdge(fromNode, toNode);
-        factory->application->setSelectedNode(toNode);
+        if(fromNode != gbToNode) factory->application->g->addEdge(fromNode, gbToNode);
+        factory->application->setSelectedNode(gbToNode);
         factory->application->resumeLayout();
     }
 }
@@ -123,8 +120,8 @@ void GraphBuilder::display(GLContextData& contextData) const
         MyceliaDataItem* dataItem = contextData.retrieveDataItem<MyceliaDataItem>(this);
         glPushMatrix();
         glMultMatrix(Vrui::getNavigationTransformation());
-        factory->application->drawEdge(fromPosition, currentPosition, material, 
-                                       factory->application->getEdgeThickness(), 
+        factory->application->drawEdge(fromPosition, currentPosition, material,
+                                       factory->application->getEdgeThickness(),
                                        drawArrow, bidirectional, dataItem);
         glPopMatrix();
     }
@@ -134,6 +131,10 @@ void GraphBuilder::frame()
 {
     Vrui::InputDevice* device = input.getSlotDevice(0);
     currentPosition = getPosition(device);
+
+    // highlight the nearest node within one radius
+    toNode = factory->application->selectNode(device);
+    factory->application->setHighlightedNode(toNode);
 }
 
 const Vrui::ToolFactory* GraphBuilder::getFactory(void) const

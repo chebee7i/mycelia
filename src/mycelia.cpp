@@ -560,7 +560,11 @@ bool Mycelia::drawShapeNode(int node, MyceliaDataItem* dataItem) const
     const Vrui::Point& p = gCopy->getNodePosition(node);
     const float size = gCopy->getNodeSize(node);
 
-    if(node == selectedNode)
+    if(node == highlightedNode)
+    {
+        glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_HIGHLIGHTED));
+    }
+    else if(node == selectedNode)
         glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED));
     else if(node == previousNode)
         glMaterial(GLMaterialEnums::FRONT_AND_BACK, *gCopy->getNodeMaterialFromId(MATERIAL_SELECTED_PREVIOUS));
@@ -1331,6 +1335,17 @@ void Mycelia::setSelectedNode(int node)
     server->callback(node);
 #endif
 }
+
+void Mycelia::setHighlightedNode(int node)
+{
+    if (node != highlightedNode)
+    {
+        highlightedNode = node;
+        g->update();
+    }
+}
+
+
 
 int Mycelia::selectNode(const Vrui::Point& clickPosition) const
 {

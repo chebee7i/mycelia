@@ -129,6 +129,7 @@ private:
     // misc
     int selectedNode;
     int previousNode;
+    int highlightedNode;
     float coneAngle;
     Vrui::Vector rightVector;
     Vrui::Vector upVector;
@@ -199,6 +200,7 @@ public:
     int getPreviousNode() const;
     int getSelectedNode() const;
     void setSelectedNode(int);
+    void setHighlightedNode(int);
 
     // Returns nearest node within one standard node radius.
     int selectNode(const Vrui::Point&) const;

@@ -27,14 +27,14 @@ class Mycelia;
 class GraphBuilderFactory : public Vrui::ToolFactory
 {
     friend class GraphBuilder;
-    
+
 private:
     Mycelia* application;
-    
+
 public:
     GraphBuilderFactory(Vrui::ToolManager&, Mycelia*);
     ~GraphBuilderFactory();
-    
+
     Vrui::Tool* createTool(const Vrui::ToolInputAssignment& inputAssignment) const;
     void destroyTool(Vrui::Tool* tool) const;
     const char* getName() const;
@@ -43,19 +43,20 @@ public:
 class GraphBuilder : public Vrui::Tool, public GLObject
 {
     friend class GraphBuilderFactory;
-    
+
 private:
     static GraphBuilderFactory* factory;
     Vrui::ONTransform initial;
     bool dragging;
-    
+
     Vrui::Point currentPosition;
     Vrui::Point fromPosition;
     int fromNode; // stored internally to enable multiple tools
-    
+    int toNode;
+
 public:
     GraphBuilder(const Vrui::ToolFactory*, const Vrui::ToolInputAssignment&);
-    
+
     void buttonCallback(int, Vrui::InputDevice::ButtonCallbackData*);
     void display(GLContextData&) const;
     void frame();

@@ -100,6 +100,11 @@ void NodeSelector::frame()
         current *= initial; // 'subtracts' starting transform to find increment, adds to node start position
         factory->application->g->setNodePosition(factory->application->getSelectedNode(), current.getOrigin());
     }
+
+    // highlight the nearest node within one radius
+    int toNode = factory->application->selectNode(device);
+    factory->application->setHighlightedNode(toNode);
+
 }
 
 const Vrui::ToolFactory* NodeSelector::getFactory(void) const
