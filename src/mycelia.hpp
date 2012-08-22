@@ -144,9 +144,9 @@ public:
     // graph functions
     void buildGraphList(MyceliaDataItem*) const;
     void drawEdge(const Edge&, MyceliaDataItem*) const;
-    void drawEdge(const Vrui::Point&, const Vrui::Point&, 
-                  const GLMaterial*, const Vrui::Scalar, bool, bool, 
-                  MyceliaDataItem*, 
+    void drawEdge(const Vrui::Point&, const Vrui::Point&,
+                  const GLMaterial*, const Vrui::Scalar, bool, bool,
+                  MyceliaDataItem*,
                   double sourceEdgeOffset=0, double targetEdgeOffset=0) const;
     void drawEdges(MyceliaDataItem*) const;
     void drawEdgeLabels(MyceliaDataItem*) const;
@@ -161,7 +161,6 @@ public:
     void fileOpen(std::string &filename);
     double getNodeEdgeOffset(int node, MyceliaDataItem*) const;
     bool isSelectedComponent(int) const;
-
 
     // layout functions
     void resetLayout(bool watch=true);
@@ -200,9 +199,21 @@ public:
     int getPreviousNode() const;
     int getSelectedNode() const;
     void setSelectedNode(int);
+
+    // Returns nearest node within one standard node radius.
     int selectNode(const Vrui::Point&) const;
+
+    // Returns nearest node within some fixed cone angle.
     int selectNode(const Vrui::Ray&) const;
+
+    // If input device is a 6 DOF device, the device location is used to find
+    // the nearest node, unconditionally.  Otherwise, a ray emanating from the
+    // device is used to find the nearest node within some fixed cone angle.
     int selectNode(Vrui::InputDevice*) const;
+
+    // Returns nearest node and its squared distance from the point.
+    // Importantly, the returned node is never equal to SELECTION_NONE.
+    std::pair<int, float> nearestNode(const Vrui::Point&) const;
 
     // arrowhead
     Vrui::Scalar getArrowWidth() const;

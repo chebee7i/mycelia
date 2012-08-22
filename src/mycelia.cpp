@@ -251,7 +251,7 @@ Mycelia::Mycelia(int argc, char** argv, char** appDefaults)
     selectedNode = SELECTION_NONE;
     previousNode = SELECTION_NONE;
     coneAngle = 0.005;
-    
+
     upVector = Vrui::getUpDirection();
     rightVector = Geometry::cross( Vrui::getForwardDirection(), upVector );
 
@@ -329,7 +329,7 @@ void Mycelia::drawEdge(const Vrui::Point& source,
                        MyceliaDataItem* dataItem,
                        double sourceEdgeOffset,
                        double targetEdgeOffset) const
-{  
+{
     // computer graphics 2nd ed, p.413
     const Vrui::Vector edgeVector = target - source;
     const Vrui::Vector normalVector = Geometry::cross(edgeVector, upVector);
@@ -418,14 +418,14 @@ void Mycelia::drawEdgeLabels(MyceliaDataItem* dataItem) const
     if(!edgeLabelButton->getToggle()) return;
 
     Vrui::Rotation inverseRotation = Vrui::getInverseNavigationTransformation().getRotation();
-    
+
     // Fonts are drawn with up direction (0,1,0). So we need to rotate them to
     // Vrui's up direction which is not necessarily (0,0,1).
     Vrui::Vector fontUpVector = Vrui::Vector(0,1,0);
     Vrui::Scalar angle = VruiHelp::angle( fontUpVector, upVector );
     Vrui::Vector rotationAxis = Geometry::cross(fontUpVector, upVector);
     inverseRotation *= Vrui::Rotation(rotationAxis, angle);
-    
+
     float scale = nodeRadius * FONT_MODIFIER;
 
     foreach(int edge, gCopy->getEdges())
@@ -524,9 +524,9 @@ bool Mycelia::drawTextureNode(int node, MyceliaDataItem* dataItem) const
     glBindTexture(GL_TEXTURE_2D, imageId);
 
     glTranslatef(p[0], p[1], p[2]);
-    
+
     // Note: This does not allow the aspect ratio to change.
-    // Note: Assuming an rightVector and upVector are perpendicular, this is 
+    // Note: Assuming an rightVector and upVector are perpendicular, this is
     //       equivalent to: (width, height) *= scale
     double scale = gCopy->getNodeImageScale(node);
     glScalef(scale,scale,scale);
@@ -622,7 +622,7 @@ void Mycelia::drawNodeLabels(MyceliaDataItem* dataItem) const
     Vrui::Scalar angle = VruiHelp::angle( fontUpVector, upVector );
     Vrui::Vector rotationAxis = Geometry::cross(fontUpVector, upVector);
     inverseRotation *= Vrui::Rotation(rotationAxis, angle);
-    
+
     float scale = nodeRadius * FONT_MODIFIER;
 
     foreach(int node, gCopy->getNodes())
@@ -740,9 +740,9 @@ double Mycelia::getNodeEdgeOffset(int node, MyceliaDataItem* dataItem) const
 {
     // Determine an additional offset while drawing edges due to the node
     // being rendered as an texture which can have its own scale.
-    
-    double offset = nodeRadius;    
-    
+
+    double offset = nodeRadius;
+
     std::string type = gCopy->getNodeType(node);
     if (type == "image")
     {
@@ -751,11 +751,11 @@ double Mycelia::getNodeEdgeOffset(int node, MyceliaDataItem* dataItem) const
         GLuint imageId = texturePair.first;
         if (imageId != 0)
         {
-            // The height is normalized to nodeDiameter = 2*nodeRadius when 
+            // The height is normalized to nodeDiameter = 2*nodeRadius when
             // imageScale = 1. So we use the height as the diameter of the sphere which edges
             // should end on. This gives a sphere inscribed in a cube
             // determined by the image's height. Assuming the right and up
-            // vectors are perpendicular, the image dimensions W,H are 
+            // vectors are perpendicular, the image dimensions W,H are
             // scaled during its drawing simply by imageScale. So the rendered
             // height in navigation coordiantes is just: nodeRadius * imageScale.
             // Dividing by two gives the radius which is our offset.
@@ -1334,8 +1334,113 @@ void Mycelia::setSelectedNode(int node)
 
 int Mycelia::selectNode(const Vrui::Point& clickPosition) const
 {
-    int result = SELECTION_NONE;
-    float minDist2 = Math::sqr(nodeRadius);
+    std::pair<int, float> result = nearestNode(clickPosition);
+    int nearest;
+
+    if ( result.second <= Math::sqr(nodeRadius) )
+    {
+        nearest = result.first;
+    }
+    else
+    {
+        nearest = SELECTION_NONE;
+    }
+    return nearest;
+}
+
+int Mycelia::selectNode(const Vrui::Ray& ray) const
+{
+    int nearest = SELECTION_NONE;
+    float coneAngle2 = Math::sqr(coneAngle);
+    float lambdaMin2 = numeric_limits<float>::max();
+
+    foreach(int node, g->getNodes())
+    {
+        // vector pointing from origin to node position
+        Vrui::Vector sp = g->getNodePosition(node) - ray.getOrigin();
+        // squared dot product between sp and ray direction
+        float x2 = Math::sqr(sp * ray.getDirection());
+
+        // If the dot product is positive, then the node is in front of the
+        // plane perpendicular to the ray direction.  Thus, the node is
+        // in the general direction of the ray.  Generally, we want to balance
+        // two traits:
+        //
+        //   1) the angle between sp and the ray direction
+        //   2) the distance between the node and the ray origin
+        //
+        // For a fixed angle, minimizing the value of x gives us the nearest
+        // node.  For a fixed value of x, minimizing the angle between sp and
+        // the ray gives the nearest node. However, it is important to remember
+        // that at any fixed value of x and angle, there is an entire circle
+        // of points which are equally near the ray.
+        //
+        // We can think of a ray as an (uncountably) infinite collection of
+        // points.  For argument's sake, consider a finite collection of points
+        // along the ray direction.  For each point, we can find the node
+        // nearest to said point.  A priori, there is no "obvious" choice
+        // for how to choose amongst these nearest points. We must choose
+        // how to define the nearest node.
+
+        // One idea is to start with an initial max distance and then find
+        // points closer to the ray origin such that their angle is smaller
+        // than the angle that the current nearest point made with the ray.
+        // However, this brings in ordering issues. If you happen to find a
+        // really small angle immediately, then you could have another point
+        // with a slightly larger angle that is much closer in distance to the
+        // ray origin---this point would be excluded from being the nearest
+        // node (undesirably).
+        //
+        // However, this seems like an acceptable trade-off given that we are
+        // trying to hack a 3D operation onto a 2D device.  The initial max
+        // angle is the coneAngle2.
+
+        if (x2 >= 0 && x2 < lambdaMin2)
+        {
+            // This is the squared norm of cross product between vector from
+            // origin to point and ray direction.  Even more importantly, this
+            // quantity is: (a b sin \theta)^2
+            float y2 = Geometry::sqr(Geometry::cross(sp, ray.getDirection()));
+
+            // x2 is (a b cos \theta)^2. Thus, when we divide we get
+            // (tan \theta)^2 which is monotonically increasing over -pi/2 to
+            // pi/2, and thus, over the angles we care about (0 to 90 degrees).
+            // So we can use it for comparisons instead of solving explicitly
+            // for the angle.
+            if (y2 / x2 <= coneAngle2)
+            {
+                nearest = node;
+                lambdaMin2 = x2;
+            }
+        }
+    }
+
+    return nearest;
+}
+
+int Mycelia::selectNode(Vrui::InputDevice* device) const
+{
+    int nearest;
+
+    if(device->is6DOFDevice())
+    {
+        Vrui::Point devicePosition(Vrui::getNavigationTransformation().inverseTransform(device->getPosition()));
+        nearest = selectNode(devicePosition);
+    }
+    else
+    {
+        Vrui::Ray deviceRay(device->getPosition(), device->getRayDirection());
+        deviceRay.transform(Vrui::getInverseNavigationTransformation());
+        deviceRay.normalizeDirection();
+        nearest = selectNode(deviceRay);
+    }
+    return nearest;
+}
+
+std::pair<int, float> Mycelia::nearestNode(const Vrui::Point& clickPosition) const
+{
+    int nearest = SELECTION_NONE;
+    float minDist2 = numeric_limits<float>::max();
 
     foreach(int node, g->getNodes())
     {
@@ -1343,57 +1448,12 @@ int Mycelia::selectNode(const Vrui::Point& clickPosition) const
 
         if(dist2 < minDist2)
         {
-            result = node;
+            nearest = node;
             minDist2 = dist2;
         }
     }
 
-    return result;
-}
-
-int Mycelia::selectNode(const Vrui::Ray& ray) const
-{
-    int result = SELECTION_NONE;
-    float coneAngle2 = Math::sqr(coneAngle);
-    float lambdaMin = numeric_limits<float>::max();
-
-    foreach(int node, g->getNodes())
-    {
-        Vrui::Vector sp = g->getNodePosition(node) - ray.getOrigin();
-        float x = sp * ray.getDirection();
-
-        if(x >= 0 && x < lambdaMin)
-        {
-            float y2 = Geometry::sqr(Geometry::cross(sp, ray.getDirection()));
-
-            if(y2 / Math::sqr(x) <= coneAngle2)
-            {
-                result = node;
-                lambdaMin = x;
-            }
-        }
-    }
-
-    return result;
-}
-
-int Mycelia::selectNode(Vrui::InputDevice* device) const
-{
-    int result;
-
-    if(device->is6DOFDevice())
-    {
-        Vrui::Point devicePosition(Vrui::getNavigationTransformation().inverseTransform(device->getPosition()));
-        result = selectNode(devicePosition);
-    }
-    else
-    {
-        Vrui::Ray deviceRay(device->getPosition(), device->getRayDirection());
-        deviceRay.transform(Vrui::getInverseNavigationTransformation());
-        deviceRay.normalizeDirection();
-        result = selectNode(deviceRay);
-    }
-
+    std::pair<int, float> result(nearest, minDist2);
     return result;
 }
 
