@@ -1352,7 +1352,9 @@ int Mycelia::selectNode(const Vrui::Point& clickPosition) const
     std::pair<int, float> result = nearestNode(clickPosition);
     int nearest;
 
-    if ( result.second <= Math::sqr(nodeRadius) )
+    // 8 seems to be a good scale that keep it useable.
+    // This is absolutely arbitrary.
+    if ( result.second <= Math::sqr(8*nodeRadius) )
     {
         nearest = result.first;
     }
